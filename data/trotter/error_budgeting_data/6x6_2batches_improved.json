@@ -1,0 +1,20 @@
+{
+    "qpe_energy_error": 0.1186457155727193,
+    "trotter_energy_error": 0.06104200461602075,
+    "rotation_energy_error": 0.001642597923170186,
+    "evolution_time": 0.1052181930493854,
+    "cat_energy_error": 0.0022696818880897723,
+    "no_trotter_steps": 11,
+    "rot_bop": 21,
+    "no_queries": 128,
+    "cat_bop": 18,
+    "toffoli_estimate": 546132.0,
+    "no_batches": 2,
+    "ordering": "PIG",
+    "x": [
+        0.6462184944047892,
+        0.9397687181722411,
+        0.419856963820076,
+        0.1052181930493854
+    ]
+}
