@@ -1,4 +1,4 @@
-"""Module for control qubits (i.e. phase qubits)."""
+"""Module for control qubits (i.e. the phase qubits used in QPE)."""
 
 from psiqdk.workbench import Qubits
 

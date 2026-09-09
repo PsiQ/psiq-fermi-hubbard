@@ -5,13 +5,49 @@ from psiqdk.workbench import Qubits, Qubrick
 
 from ..utils.control_qubit import ControlQubit, DirectionalControlQubit
 from .directional_hamming_weight_phasing import PowerOfTwoBatchedDirectionalHammingWeightPhasing
-from .fermi_hubbard_data import InteractionTermData, PlaquetteTermData
+from .fermi_hubbard_data import InteractionTermData, PlaquetteTermData, FermiHubbardData
 from .hopping import PlaquetteTrotterStep, exptXXYYViaPPR
 from .interaction import InteractionTrotterStep
 
 
+def construct_data_classes(data: FermiHubbardData) -> tuple[InteractionTermData, PlaquetteTermData, PlaquetteTermData]:
+    """Helper function to construct the data classes for the interaction, pink, and gold plaquette terms.
+
+    Args:
+        data: Fermi-Hubbard system dataclass.
+
+    Returns:
+        tuple[InteractionTermData, PlaquetteTermData, PlaquetteTermData]: Data classes for the interaction, pink, and gold plaquette terms.
+    """
+    single_trotter_step_evolution_time = data.total_evolution_time / (data.n_trotter_steps)
+
+    # First extract data to create data classes for interaction term data
+    # Divide by four from Jordan Wigner
+    interaction_coefficient = data.u / 4
+    # Implicitly assumes IPGPI second order trotter
+    # - so the first and last interaction evolutions are by time t/2
+    # - whereas when we have sequential trotter steps two interaction steps can be merged together to make a single evolution by time t.
+    interaction_data = InteractionTermData(
+        data.enumeration,
+        single_trotter_step_evolution_time / 2,
+        interaction_coefficient,
+        particle_hole_symmetry=data.particle_hole_symmetry,
+    )
+
+    # Then extract data to create data classes for plaquette term data
+    # Implicitly assumes IPGPI second order trotter so that the pink evolution is t/2 and the gold is two merged evolutions to make t.
+    pink_plaquette_data = PlaquetteTermData("pink", data.enumeration, single_trotter_step_evolution_time / 2, data.t)
+    gold_plaquette_data = PlaquetteTermData("gold", data.enumeration, single_trotter_step_evolution_time, data.t)
+
+    return (interaction_data, pink_plaquette_data, gold_plaquette_data)
+
+
 class HubbardPlaquetteTrotterizationIPG(Qubrick):
-    """Implements the time-evolution :math:`exp(itH))` of the Fermi-Hubbard Hamiltonian based on arxiv:2012.09238, with Trotter ordering [Interaction, Pink, Gold] so that the interaction term is merged between steps."""
+    """Implements the time-evolution :math:`exp(itH))` of the Fermi-Hubbard Hamiltonian.
+
+    Based on https://arxiv.org/abs/2012.09238, with Trotter ordering [Interaction, Pink, Gold] so that the interaction term is merged between steps.
+
+    """
 
     def __init__(
         self,
@@ -20,12 +56,12 @@ class HubbardPlaquetteTrotterizationIPG(Qubrick):
         gold_plaquette_trotter_step: Qubrick | None = None,
         **kwargs,
     ):
-        """Construct the HubbardPlaquetteTrotterization Qubrick.
+        """Construct the Hubbard Plaquette Trotterization Qubrick with IPG ordering.
 
         Args:
-            interaction_trotter_step: qubrick that implements time evolution of the Interaction terms in the Hubbard model - exp(itH_I) - based on 2012.09238.
-            pink_plaquette_trotter_step: qubrick that implements time evolution for a pink plaquette exp(itK). See Equation E10 of https://arxiv.org/abs/2012.09238.
-            gold_plaquette_trotter_step: qubrick that implements time evolution for a gold plaquette exp(itK). See Equation E10 of https://arxiv.org/abs/2012.09238.
+            interaction_trotter_step: qubrick that implements time evolution of the Interaction terms in the Hubbard model - exp(itH_I) - see https://arxiv.org/abs/2012.09238.
+            pink_plaquette_trotter_step: qubrick that implements time evolution for a pink plaquette exp(itK) - see Equation E10 of https://arxiv.org/abs/2012.09238.
+            gold_plaquette_trotter_step: qubrick that implements time evolution for a gold plaquette exp(itK) - see Equation E10 of https://arxiv.org/abs/2012.09238.
             **kwargs: Other arguments to pass to the init.
         """
         super().__init__(**kwargs)
@@ -45,17 +81,25 @@ class HubbardPlaquetteTrotterizationIPG(Qubrick):
         else:
             self.gold_plaquette_trotter_step = gold_plaquette_trotter_step
 
-    def _compute(self, target_reg, data, catalyst_reg=None, power=1, ctrl=0, use_jump_back=False):
+    def _compute(
+        self,
+        target_reg: Qubits,
+        data: FermiHubbardData,
+        catalyst_reg: Qubits | None = None,
+        power: int = 1,
+        ctrl: int | Qubits = 0,
+        use_jump_back: bool = False,
+    ):
         """Compute the Plaquette Trotter step.
 
         Args:
-            target_reg (Qubits): Qubit register storing the system. Register is of size ``number_of_spin_orbitals`` or
-                ``2*x_dimension*y_dimension``
-            data (Vanilla2DFermiHubbardData): Fermi-Hubbard system dataclass.
-            catalyst_reg (Qubits): Qubit register storing all the catalyst qubits for I, P, G terms.
-            power (int): j in U^{j} for U = Trotterized time evolution operator.
-            ctrl (int or Qubits, optional): The quantum controls that control the action of the Qubrick.
-            use_jump_back (bool): If True, uses the jump functionality to speed up resource counting. Default is False.
+            target_reg: Qubit register storing the system. Size of register is the number of spin orbitals or
+                ``2 * x_dimension * y_dimension``.
+            data: Fermi-Hubbard system dataclass.
+            catalyst_reg: Qubit register storing all the catalyst qubits for I, P, G terms.
+            power: j in U^{j} for U = Trotterized time evolution operator.
+            ctrl: The quantum controls that control the action of the Qubrick.
+            use_jump_back: If True, uses the jump functionality to speed up resource counting. Default is False.
 
         Note:
             - See Eq. (E2) in arxiv:2012.09238
@@ -63,23 +107,7 @@ class HubbardPlaquetteTrotterizationIPG(Qubrick):
         if catalyst_reg is not None:
             raise ValueError("This input arg does not do anything. We added to have consistent compute args.")
 
-        single_trotter_step_evolution_time = data.total_evolution_time / (data.n_trotter_steps)
-        # First extract data to create data classes for interaction term data
-        interaction_coefficient = data.u / 4
-        # Implicitly assumes IPGPI second order trotter so the first and last interaction evolutions are by time t/2 whereas when we have sequential trotter steps two interaction steps can be merged together to make a single evolution by time t.
-        interaction_data = InteractionTermData(
-            data.enumeration,
-            single_trotter_step_evolution_time / 2,
-            interaction_coefficient,
-            particle_hole_symmetry=data.particle_hole_symmetry,
-        )
-
-        # Then extract data to create data classes for plaquette term data
-        # Implicitly assumes IPGPI second order trotter so that the pink evolution is t/2 and the gold is two merged evolutions to make t.
-        pink_plaquette_data = PlaquetteTermData(
-            "pink", data.enumeration, single_trotter_step_evolution_time / 2, data.t
-        )
-        gold_plaquette_data = PlaquetteTermData("gold", data.enumeration, single_trotter_step_evolution_time, data.t)
+        interaction_data, pink_plaquette_data, gold_plaquette_data = construct_data_classes(data)
 
         for i in range(power):
             # Initial I half-step
@@ -122,7 +150,11 @@ class HubbardPlaquetteTrotterizationIPG(Qubrick):
 
 
 class HubbardPlaquetteTrotterizationPIG(Qubrick):
-    """Implements the time-evolution :math:`exp(itH))` of the Fermi-Hubbard Hamiltonian based on arxiv:2012.09238, with Trotter ordering [Pink, Interaction, Gold] so that pink plaquettes are merged between steps."""
+    """Implements the time-evolution :math:`exp(itH))` of the Fermi-Hubbard Hamiltonian.
+
+    Based on https://arxiv.org/abs/2012.09238, with Trotter ordering [Pink, Interaction, Gold] so that pink plaquettes are merged between steps.
+
+    """
 
     def __init__(
         self,
@@ -131,12 +163,12 @@ class HubbardPlaquetteTrotterizationPIG(Qubrick):
         gold_plaquette_trotter_step: Qubrick | None = None,
         **kwargs,
     ):
-        """Construct the HubbardPlaquetteTrotterization Qubrick.
+        """Construct the Hubbard Plaquette Trotterization Qubrick with PIG ordering.
 
         Args:
-            interaction_trotter_step: qubrick that implements time evolution of the Interaction terms in the Hubbard model - exp(itH_I) - based on 2012.09238.
-            pink_plaquette_trotter_step: qubrick that implements time evolution for a pink plaquette exp(itK). See Equation E10 of https://arxiv.org/abs/2012.09238.
-            gold_plaquette_trotter_step: qubrick that implements time evolution for a gold plaquette exp(itK). See Equation E10 of https://arxiv.org/abs/2012.09238.
+            interaction_trotter_step: qubrick that implements time evolution of the Interaction terms in the Hubbard model - exp(itH_I) - see https://arxiv.org/abs/2012.09238.
+            pink_plaquette_trotter_step: qubrick that implements time evolution for a pink plaquette exp(itK) - see Equation E10 of https://arxiv.org/abs/2012.09238.
+            gold_plaquette_trotter_step: qubrick that implements time evolution for a gold plaquette exp(itK) - see Equation E10 of https://arxiv.org/abs/2012.09238.
             **kwargs: Other arguments to pass to the init.
 
         Note:
@@ -161,22 +193,22 @@ class HubbardPlaquetteTrotterizationPIG(Qubrick):
 
     def _compute(
         self,
-        target_reg,
-        data,
-        catalyst_reg=None,
+        target_reg: Qubits,
+        data: FermiHubbardData,
+        catalyst_reg: Qubits | None = None,
         power: int = 1,
-        ctrl: int | DirectionalControlQubit = 0,
-        use_jump_back=False,
+        ctrl: int | Qubits = 0,
+        use_jump_back: bool = False,
     ):
         """Compute the Plaquette Trotter step raised to a power.
 
         Args:
-            target_reg (Qubits): Qubit register storing the system. Register is of size ``number_of_spin_orbitals`` or
+            target_reg: Qubit register storing the system. Register is of size ``number_of_spin_orbitals`` or
                 ``2*x_dimension*y_dimension``
-            data (Vanilla2DFermiHubbardData): Fermi-Hubbard system dataclass.
-            catalyst_reg (Qubits): Qubit register storing all the catalyst qubits for P, I, G terms.
-            power (int): j in U^{j} for U = Trotterized time evolution operator.
-            ctrl (int or ControlQubit or DirectionalControlQubit, optional): The quantum controls that control
+            data: Fermi-Hubbard system dataclass.
+            catalyst_reg : Qubit register storing all the catalyst qubits for P, I, G terms.
+            power: j in U^{j} for U = Trotterized time evolution operator.
+            ctrl: The quantum controls that control
                 the action of the Qubrick.
                 If ctrl is 0, no control qubit.
                 If ctrl is of DirectionalControlQubit type, then we implement the directionally controlled
@@ -194,30 +226,7 @@ class HubbardPlaquetteTrotterizationPIG(Qubrick):
                 "For closed controlled evolution, a more efficient implementation would be HubbardPlaquetteTrotterizationPIGClosedControl."
             )
 
-        single_trotter_step_evolution_time = data.total_evolution_time / data.n_trotter_steps
-
-        interaction_coeff_term = data.u / 4  # divide by four from Jordan Wigner
-
-        interaction_data = InteractionTermData(
-            data.enumeration,
-            single_trotter_step_evolution_time / 2,
-            interaction_coeff_term,
-            particle_hole_symmetry=data.particle_hole_symmetry,
-        )
-
-        pink_plaquette_data = PlaquetteTermData(
-            "pink",
-            data.enumeration,
-            single_trotter_step_evolution_time / 2,
-            data.t,
-        )
-
-        gold_plaquette_data = PlaquetteTermData(
-            "gold",
-            data.enumeration,
-            single_trotter_step_evolution_time,
-            data.t,
-        )
+        interaction_data, pink_plaquette_data, gold_plaquette_data = construct_data_classes(data)
 
         total_trotter_steps = power * data.n_trotter_steps
 
@@ -274,9 +283,10 @@ class HubbardPlaquetteTrotterizationPIG(Qubrick):
 
 
 class HubbardPlaquetteTrotterizationPIGClosedControl(Qubrick):
-    """Implements a closed-controlled time-evolution :math:`exp(itH))` of the Fermi-Hubbard Hamiltonian based on arxiv:2012.09238,
-    with Trotter ordering [Pink, Interaction, Gold] so that pink plaquettes are merged between steps. This subroutine can be
-    used on the first phase qubit of a QPE employing directional phase kickback.
+    """Implements a closed-controlled time-evolution :math:`exp(itH))` of the Fermi-Hubbard Hamiltonian.
+
+    Based on https://arxiv.org/abs/2012.09238, with Trotter ordering [Pink, Interaction, Gold] so that pink plaquettes are merged between steps.
+    This subroutine can be used on the first phase qubit of a QPE employing directional phase kickback.
     """
 
     def __init__(
@@ -286,12 +296,12 @@ class HubbardPlaquetteTrotterizationPIGClosedControl(Qubrick):
         gold_plaquette_trotter_step: Qubrick | None = None,
         **kwargs,
     ):
-        """Construct the HubbardPlaquetteTrotterization Qubrick.
+        """Construct the Hubbard Plaquette Trotterization Qubrick with PIG ordering and closed control.
 
         Args:
-            interaction_trotter_step: qubrick that implements time evolution of the Interaction terms in the Hubbard model - exp(itH_I) - based on 2012.09238.
-            pink_plaquette_trotter_step: qubrick that implements time evolution for a pink plaquette exp(itK). See Equation E10 of https://arxiv.org/abs/2012.09238.
-            gold_plaquette_trotter_step: qubrick that implements time evolution for a gold plaquette exp(itK). See Equation E10 of https://arxiv.org/abs/2012.09238.
+            interaction_trotter_step: qubrick that implements time evolution of the Interaction terms in the Hubbard model - exp(itH_I) - see https://arxiv.org/abs/2012.09238.
+            pink_plaquette_trotter_step: qubrick that implements time evolution for a pink plaquette exp(itK) - see Equation E10 of https://arxiv.org/abs/2012.09238.
+            gold_plaquette_trotter_step: qubrick that implements time evolution for a gold plaquette exp(itK) - see Equation E10 of https://arxiv.org/abs/2012.09238.
             **kwargs: Other arguments to pass to the init.
         """
         super().__init__(**kwargs)
@@ -328,15 +338,15 @@ class HubbardPlaquetteTrotterizationPIGClosedControl(Qubrick):
         else:
             self.gold_plaquette_trotter_step = gold_plaquette_trotter_step
 
-    def _compute(self, target_reg, catalyst_reg, data, ctrl: ControlQubit):
+    def _compute(self, target_reg: Qubits, catalyst_reg: Qubits, data: FermiHubbardData, ctrl: ControlQubit):
         """Compute the Plaquette Trotter step.
 
         Args:
-            target_reg (Qubits): Qubit register storing the system. Register is of size ``number_of_spin_orbitals`` or
-                ``2*x_dimension*y_dimension``
-            catalyst_reg (Qubits): Qubit register storing all the catalyst qubits for P, I, G terms.
-            data (Vanilla2DFermiHubbardData): Fermi-Hubbard system dataclass.
-            ctrl (ControlQubit): The quantum controls that control the action of the Qubrick.
+            target_reg: Qubit register storing the system. Size of register is the number of spin orbitals or
+                ``2 * x_dimension * y_dimension``.
+            catalyst_reg: Qubit register storing all the catalyst qubits for P, I, G terms.
+            data: Fermi-Hubbard system dataclass.
+            ctrl: The quantum controls that control the action of the Qubrick.
 
         Note:
             - See Eq. (E2) in arxiv:2012.09238
@@ -344,22 +354,7 @@ class HubbardPlaquetteTrotterizationPIGClosedControl(Qubrick):
         if not (isinstance(ctrl, ControlQubit) or isinstance(ctrl, Qubits)):
             raise ValueError("This qubrick is optimized for closed controlled evolution operator.")
 
-        single_trotter_step_evolution_time = data.total_evolution_time / (data.n_trotter_steps)
-
-        # First extract data to create data classes for interaction term data
-        interaction_coeff_term = data.u / 4  # divide by four from Jordan Wigner
-        interaction_data = InteractionTermData(
-            data.enumeration,
-            single_trotter_step_evolution_time / 2,
-            interaction_coeff_term,
-            particle_hole_symmetry=data.particle_hole_symmetry,
-        )
-
-        # Then extract data to create data classes for plaquette term data
-        pink_plaquette_data = PlaquetteTermData(
-            "pink", data.enumeration, single_trotter_step_evolution_time / 2, data.t
-        )
-        gold_plaquette_data = PlaquetteTermData("gold", data.enumeration, single_trotter_step_evolution_time, data.t)
+        interaction_data, pink_plaquette_data, gold_plaquette_data = construct_data_classes(data)
 
         self.pink_plaquette_trotter_step.compute(target_reg, pink_plaquette_data, ctrl=0)
 

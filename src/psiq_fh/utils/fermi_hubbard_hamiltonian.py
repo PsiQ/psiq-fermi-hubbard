@@ -8,20 +8,26 @@ from openfermion.transforms import jordan_wigner
 from psiqdk.algorithms.utils.paulimask import PauliMask, PauliSum
 
 
-def get_expected_norm(L_x, L_y, potential_coefficient, kinetic_coefficient=1, particle_hole_symmetry=False):
+def get_expected_norm(
+    L_x: int,
+    L_y: int,
+    potential_coefficient: float,
+    kinetic_coefficient: float = 1,
+    particle_hole_symmetry: bool = False,
+) -> float:
     """Analytically calculate the norm of the fermi hubbard hamiltonian as defined by Eq. 57 of arXiv:1805.03662.
 
     Args:
-        L_x (int): Physical lattice dimension of the system in question x dimension.
-        L_y (int): Physical lattice dimension of the system in question y dimension.
-        potential_coefficient (float): The strength of the potential (coulomb) interaction (typically denoted by ``u``)
-        kinetic_coefficient (float, optional): The strength of the kinetic (hopping) interaction (typically denoted by
+        L_x: Physical lattice x dimension of the system in question.
+        L_y: Physical lattice y dimension of the system in question.
+        potential_coefficient: The strength of the potential (coulomb) interaction (typically denoted by ``u``)
+        kinetic_coefficient: The strength of the kinetic (hopping) interaction (typically denoted by
             ``t``). Defaults to 1.
-        particle_hole_symmetry (bool): whether the Hamiltonian has particle hole symmetry or not. Defaults to False.
+        particle_hole_symmetry: Whether the Hamiltonian has particle hole symmetry or not. Defaults to False.
 
     Note:
         This assumed periodic boundary conditions to keep in line with
-            the form used in arXiv:1805.03662.
+        the form used in arXiv:1805.03662.
 
     Returns:
         The expected norm as a float (positive and real-valued).
@@ -50,38 +56,38 @@ def get_expected_norm(L_x, L_y, potential_coefficient, kinetic_coefficient=1, pa
 
     # Total links across both spin sectors (2 spins)
     total_links = 2 * (x_links_per_spin + y_links_per_spin)
-    # Each hopping term has norm 1 (from cdagger_i c_j + h.c.)
+    # Each hopping term has norm 1 (from c^dagger_i c_j + h.c.)
     kinetic_term = kinetic_coefficient * total_links
 
     return potential_term + kinetic_term
 
 
 def get_fermi_hubbard_hamiltonian(
-    x_dim,
-    y_dim,
-    potential_coefficient,
-    kinetic_coefficient=1,
-    periodic=True,
-    particle_hole_symmetry=False,
-    spinless=False,
+    x_dim: int,
+    y_dim: int,
+    potential_coefficient: float,
+    kinetic_coefficient: float = 1,
+    periodic: bool = True,
+    particle_hole_symmetry: bool = False,
+    spinless: bool = False,
 ):
     """Wrapper function around openfermion to return the Fermi Hubbard hamiltonian as a ``PauliSum``.
 
     Args:
-        x_dim (int): The x-dimension of the physical lattice in the target system.
-        y_dim (int): The y-dimension of the physical lattice in the target system.
-        potential_coefficient (float): The strength of the potential (coulomb) interaction (typically denoted by ``u``).
-        kinetic_coefficient (float, optional): The strength of the kinetic (hopping) interaction (typically denoted by
+        x_dim: The x-dimension of the physical lattice in the target system.
+        y_dim: The y-dimension of the physical lattice in the target system.
+        potential_coefficient: The strength of the potential (coulomb) interaction (typically denoted by ``u``).
+        kinetic_coefficient: The strength of the kinetic (hopping) interaction (typically denoted by
             ``t``). Defaults to 1.
-        periodic (bool, optional): If ``True``, looks at the system using periodic boundary conditions. Defaults to
+        periodic: If ``True``, looks at the system using periodic boundary conditions. Defaults to
             ``True``.
-        particle_hole_symmetry (bool, optional): If ``True``, uses the particle-hole symmetric hamiltonian. Defaults to
+        particle_hole_symmetry: If ``True``, uses the particle-hole symmetric hamiltonian. Defaults to
             ``False``.
-        spinless (bool, optional): If ``True``, considers a spinless Hamiltonian. Defaults to ``False``.
+        spinless: If ``True``, considers a spinless Hamiltonian. Defaults to ``False``.
 
     Returns:
         ``PauliSum`` representing the fermi-hubbard hamiltonian as defined in Eq. 57 of arXiv:1805.03662 with the added
-            caveat of removing the identity term from the hamiltonian.
+        caveat of removing the identity term from the hamiltonian.
 
     """
     # Note, this hamiltonian is not projected into a particular particle number subspace
@@ -121,8 +127,8 @@ def construct_kinetic_hamiltonian_from_edges(edges: list[tuple[int, int]], kinet
     in a graph, and returns its Jordan-Wigner transformed qubit representation.
 
     Each edge (i, j) contributes two terms to the Hamiltonian:
-        - - kin_coeff * a_i† a_j  (fermion hops from j to i)
-        - - kin_coeff * a_j† a_i  (fermion hops from i to j)
+        - - kinetic_coeff * a_i† a_j  (fermion hops from j to i)
+        - - kinetic_coeff * a_j† a_i  (fermion hops from i to j)
 
     Args:
         edges (List[Tuple[int, int]]): A list of (i, j) tuples representing undirected edges
@@ -149,12 +155,12 @@ def construct_potential_hamiltonian(
     """Construct onsite interaction term and return in qubit representation, for the 2x2 square Fermi-Hubbard model.
 
     Args:
-        potential_coeff (float): Coefficient for the interaction term.
-        x_dim (int): The x-dimension of the physical lattice in the target system.
-        y_dim (int): The y-dimension of the physical lattice in the target system.
-        particle_hole_symmetry (bool, optional): If ``True``, uses the particle-hole
+        potential_coeff: Coefficient for the interaction term.
+        x_dim: The x-dimension of the physical lattice in the target system.
+        y_dim: The y-dimension of the physical lattice in the target system.
+        particle_hole_symmetry: If ``True``, uses the particle-hole
             symmetric hamiltonian. Defaults to ``False``.
-        even_odd (bool, optional): Defaults to True, and spin up being even numbers, spin down being odd.
+        even_odd: Defaults to True, and spin up being even numbers, spin down being odd.
             If False adopts the high-low configuration with spin up low number, spin down high.
     """
     potential_hamiltonian = QubitOperator()
@@ -210,10 +216,10 @@ def get_fermi_hubbard_hamiltonian_2x2_even_odd(
     """Create a numpy array Fermi Hubbard Hamiltonian for the 2x2 case with even odd enumeration.
 
     Args:
-        potential_coefficient (float): The strength of the potential (coulomb) interaction (typically denoted by ``u``)
-        kinetic_coefficient (float, optional): The strength of the kinetic (hopping) interaction (typically denoted by
+        potential_coefficient: The strength of the potential (coulomb) interaction (typically denoted by ``u``)
+        kinetic_coefficient: The strength of the kinetic (hopping) interaction (typically denoted by
             ``t``). Defaults to 1.
-        particle_hole_symmetry (bool): whether the Hamiltonian has particle hole symmetry or not. Defaults to False.
+        particle_hole_symmetry: Whether the Hamiltonian has particle hole symmetry or not. Defaults to False.
 
     Returns:
         np.array of Fermi Hubbard Hamiltonian.

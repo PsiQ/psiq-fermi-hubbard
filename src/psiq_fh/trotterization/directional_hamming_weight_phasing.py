@@ -15,20 +15,20 @@ class DirectionalHammingWeightPhasing(Qubrick):
     """Implement a directionally controlled rotation stack using hamming weight phasing.
 
     This implements the equivalent of a closed control stack of rotations of a specified angle followed
-    by an open control stack of rotations by the negative of this angle. Utilised e.g. to implement
-    directional phase kickback in QPE on Trotterized time evolution of translationally invariance lattice models, which approximately halves
-    the query count.
+    by an open control stack of rotations by the negative of this angle.
+
+    Utilized, e.g., to implement directional phase kickback in QPE of Trotterized time evolution of translationally
+    invariant lattice models, which approximately halves the query count.
     """
 
     def __init__(
         self,
-        angle,
-        rot_is_rz=False,
-        hamming_weight_qubrick=None,
-        use_catalyst_state=False,
-        catalyst_state_reg=None,
-        use_padding=False,
-        use_black_box=False,
+        angle: float,
+        rot_is_rz: bool = False,
+        hamming_weight_qubrick: Qubrick | None = None,
+        use_catalyst_state: bool = False,
+        catalyst_state_reg: Qubits | None = None,
+        use_black_box: bool = False,
         preserve_global_phase: bool = True,
         turn_on_cnots: bool = True,
         **kwargs,
@@ -36,25 +36,20 @@ class DirectionalHammingWeightPhasing(Qubrick):
         """Construct the Qubrick.
 
         Args:
-            angle (float): An angle (in degrees) specifying the angle of the rotations
-            rot_is_rz (bool): Flag to determine if attempting to perform Rz rotations or phase gates
-            hamming_weight_qubrick (Qubrick): A Qubrick that computes the hamming weight of a register
-            use_catalyst_state (bool): A flag to determine if the Phasing circuit should be used to synthesize the phase
-                gradient.
-            catalyst_state_reg (Qubits): The catalyst state for the PhaseC circuit
-            use_padding (bool): A flag to determine if the Hamming Weight register should be padded with clean ancilla
-                so that the size is consistent with the size of the catalyst state. If it is not padded, then a single
-                phase gate needs to be applied during the PhaseC circuit. If it is padded, then the rotations should be
-                completely decomposed via Toffolis when adding onto the catalyst state assuming the catalyst state is
-                large enough to implement the angle passed in exactly.
-            use_black_box (bool): Uses black box AV counts for adders in compute HWP qubrick if set to True. Default is False
-            preserve_global_phase (bool): If False, a single Rz fix-up is required. If True we need a phase gate and an Rz.
-                                        NOTE: global phase does not need to be preserved for expected functionality
-                                        iff no additional control structure
-            turn_on_cnots (bool): If True, applies CNOT fanouts on catalyst qubits when directionally controlling
+            angle: An angle (in degrees) specifying the angle of the rotations.
+            rot_is_rz: Flag to determine if attempting to perform Rz rotations or phase gates.
+            hamming_weight_qubrick: A Qubrick that computes the hamming weight of a register.
+            use_catalyst_state: A flag to determine if the Phasing circuit should be used to synthesize the phase
+                            gradient.
+            catalyst_state_reg: The catalyst state for the Phasing circuit.
+            use_black_box: If True, uses black box AV counts for adders in Hamming weight phasing qubrick.
+            preserve_global_phase: If False, a single Rz fix-up is required. If True we need a phase gate and an Rz.
+                                    NOTE: global phase does not need to be preserved for expected functionality
+                                    iff no additional control structure.
+            turn_on_cnots: If True, applies CNOT fanouts on catalyst qubits when directionally controlling
                 the Hamming weight phasing. This flag is to remove cancellable CNOTs on catalysts when the directional
-                HWP is called multiple times on the same qubits.
-            **kwargs (dict[str, Any]): Additonal Qubrick kwargs
+                Hamming weight phasing is called multiple times on the same qubits.
+            **kwargs (dict[str, Any]): Additional Qubrick kwargs.
         """
         super().__init__(**kwargs)
         self.use_black_box = use_black_box
@@ -67,7 +62,7 @@ class DirectionalHammingWeightPhasing(Qubrick):
         self.preserve_global_phase = preserve_global_phase
         self.rot_is_rz = rot_is_rz
         if not self.rot_is_rz:
-            # acquired phase will be local for phase gate
+            # Acquired phase will be local for phase gate,
             # as such fix-ups are required and we default to version with minimal cnot fanout
             self.preserve_global_phase = True
         self.turn_on_cnots = turn_on_cnots
@@ -76,7 +71,6 @@ class DirectionalHammingWeightPhasing(Qubrick):
                 self.angle, use_black_box=self.use_black_box, turn_on_cnots=turn_on_cnots
             )
         self.catalyst_state_reg = catalyst_state_reg
-        self.use_padding = use_padding
 
     def _compute(
         self,
@@ -105,63 +99,33 @@ class DirectionalHammingWeightPhasing(Qubrick):
             # controlled phase gates into one uncontrolled phase gate conjugated
             # by open-controlled CNOTs
             payload_rot_fixup = (1 << hamming_weight_register.num_qubits) * self.angle
-
-            size_of_padding = len(self.catalyst_state_reg) - len(hamming_weight_register)
-            if self.use_padding and (size_of_padding > 0):
-                padding = self.alloc_temp_qreg(size_of_padding, "hw_padding")
-                combined_reg = hamming_weight_register | padding
-                self.phasing_circuit.compute(
-                    combined_reg[:-3],
-                    self.catalyst_state_reg[:-3],
-                    ctrl=ctrl,
-                    final_qubits=combined_reg[-3:],
-                )
-                padding.write(0)
-                padding.release()
-            else:
-                self.phasing_circuit.compute(hamming_weight_register, self.catalyst_state_reg, ctrl=ctrl)
+            self.phasing_circuit.compute(hamming_weight_register, self.catalyst_state_reg, ctrl=ctrl)
         else:
             payload_rot_fixup = sum((1 << i) * self.angle for i in range(hamming_weight_register.num_qubits))
 
-            padding = 0
-            if self.use_padding:
-                size_of_padding = 0
-                current_angle = self.angle % 360
-                while current_angle:
-                    current_angle = self.angle * (1 << size_of_padding)
-                    current_angle = current_angle % 360
-                    if current_angle != 0:
-                        size_of_padding += 1
-
-                padding = self.alloc_temp_qreg(size_of_padding, "hw_padding")
-            padded_hw_reg = hamming_weight_register | padding
-
             # log-sized CNOT fanout
-            padded_hw_reg.x(~ctrl)
+            hamming_weight_register.x(~ctrl)
 
-            for ancilla_index in range(len(padded_hw_reg)):
+            for ancilla_index in range(len(hamming_weight_register)):
                 current_angle = self.angle * (1 << ancilla_index)
                 current_angle = current_angle % 360
                 if current_angle == 315:
-                    padded_hw_reg[ancilla_index].t_inv()
+                    hamming_weight_register[ancilla_index].t_inv()
                 elif current_angle == 270:
-                    padded_hw_reg[ancilla_index].s_inv()
+                    hamming_weight_register[ancilla_index].s_inv()
                 elif current_angle != 0:
-                    padded_hw_reg[ancilla_index].phase(current_angle)
+                    hamming_weight_register[ancilla_index].phase(current_angle)
 
             # log CNOT fanout
-            padded_hw_reg.x(~ctrl)
+            hamming_weight_register.x(~ctrl)
 
-            if not isinstance(padding, int):
-                padding.write(0)
-                padding.release()
         self.hamming_weight_qubrick.uncompute()
 
-        # whether phase or Rz, we need to correct for bi-controlled phase gate -> (cnot * uncontrolled phase gate * cnot)
-        # but, if we're not preserving global phase we can combine this fixup with that required when rot_is_rz is True (continues below)
+        # Whether phase or Rz, we need to correct for directionally-controlled phase gate -> (cnot * uncontrolled phase gate * cnot)
+        # But, if we're not preserving global phase we can combine this fixup with that required when rot_is_rz is True (continues below)
         if self.preserve_global_phase:
             (~ctrl).reflect(theta=-1 * payload_rot_fixup)
-        # if rot_is_rz is True, we also need to correct for implementing via phase gate(s)
+        # If rot_is_rz is True, we also need to correct for implementing via phase gate(s)
         if self.rot_is_rz:
             rot_tower_fixup = -(self.angle / 2) * len(target_register)
             if self.preserve_global_phase:
@@ -169,7 +133,7 @@ class DirectionalHammingWeightPhasing(Qubrick):
             else:
                 ctrl.rz(
                     theta=2 * rot_tower_fixup + payload_rot_fixup
-                )  # combined fix-ups: Rz -> phase and bi-ctrl phase -> uncontrolled phase + cnot's
+                )  # Combined fix-ups: Rz -> phase and directionally-controlled phase -> uncontrolled phase + cnot's
 
 
 class DirectionalPhasingCircuit(PhasingCircuit):
@@ -201,15 +165,13 @@ class DirectionalPhasingCircuit(PhasingCircuit):
         self.counter = 0
         self.turn_on_cnots = turn_on_cnots
 
-    def _compute(self, target_reg: Qubits, catalyst_reg: Qubits, ctrl: Qubits, final_qubits: Qubits | None = None):
+    def _compute(self, target_reg: Qubits, catalyst_reg: Qubits, ctrl: Qubits):
         """Use the phasing circuit to implement a tower of rotations with a directional control.
 
         Args:
             target_reg (Qubits): The state to implement the rotations upon
             catalyst_reg (Qubits): The catalyst state to use which is specific to the base angle being implemented
             ctrl (Qubits): directional control
-            final_qubits (Qubits): If passed in, these are the three qubits on which we just perform Z, S, and T
-                directly instead of adding on to the catalyst state
 
         Raises:
             ValueError: If target register is too large for the cataylst register.
@@ -247,11 +209,6 @@ class DirectionalPhasingCircuit(PhasingCircuit):
             anc = self._compute_subblock(top, mid, bottom)
             ancillae.append(anc)
             num_remaining_levels -= 1
-
-        if final_qubits is not None:
-            final_qubits[0].t_inv()
-            final_qubits[1].s_inv()
-            final_qubits[2].z()
 
         final_angle = (1 << len(target_reg)) * self.base_angle
         final_angle = final_angle % 360
@@ -301,7 +258,7 @@ class DirectionalPhasingCircuit(PhasingCircuit):
 class PowerOfTwoBatchedDirectionalHammingWeightPhasing(PowerOfTwoBatchedHammingWeightPhasing):
     """Implements directional Hamming weight phasing by splitting the target register into batches.
 
-    This Qubrick divides a large directional rotation tower into smaller batches, where the number of batches
+    This Qubrick divides a directional rotation tower into smaller batches, where the number of batches
     is a power of two. Each batch is processed with a smaller directional Hamming weight phasing circuit.
     This approach can significantly reduce the number of qubits and catalyst rotation
     requirements for large registers.
@@ -332,10 +289,10 @@ class PowerOfTwoBatchedDirectionalHammingWeightPhasing(PowerOfTwoBatchedHammingW
             n_hwp_batches: Number of batches to split the rotations into. Must be a power of 2.
                 Larger values reduce resource costs but may increase circuit depth.
             rot_is_rz: Whether to use RZ rotations (True) or phase rotations (False).
-            use_black_box (bool): Uses black box AV counts if set to True. Default is False.
-            preserve_global_phase (bool): Include phase fix-ups when using Rz rotations such that global phase is preserved.
+            use_black_box: Uses black box AV counts if set to True. Default is False.
+            preserve_global_phase: Include phase fix-ups when using Rz rotations such that global phase is preserved.
                                         NOTE: global phase does not need to be preserved for expected functionality
-            turn_on_cnots (bool): If True, applies CNOT fanouts on catalyst qubits when directionally controlling
+            turn_on_cnots: If True, applies CNOT fanouts on catalyst qubits when directionally controlling
                 the Hamming weight phasing. This flag is to remove cancellable CNOTs on catalysts when the directional
                 HWP is called multiple times on the same qubits.
             **kwargs (dict[str, Any]): Additional arguments to pass to the Qubrick constructor.

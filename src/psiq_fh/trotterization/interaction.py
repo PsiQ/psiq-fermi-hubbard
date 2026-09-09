@@ -1,11 +1,16 @@
-"""Qubricks for implementing the interaction term in the Fermi-Hubbard Trotterizaton circuit in arxiv:2012.09238."""
+"""Qubrick for implementing the interaction term in the Fermi-Hubbard Trotterizaton circuit in arxiv:2012.09238."""
 
 import numpy as np
-from psiqdk.workbench import Qubrick
+from psiqdk.workbench import Qubrick, Qubits
+from .fermi_hubbard_data import InteractionTermData
 
 
 class InteractionTrotterStep(Qubrick):
-    """Implements time evolution of the Interaction terms in the Hubbard model - exp(itH_I) - based on 2012.09238."""
+    """Implements time evolution of the Interaction terms in the Hubbard model - exp(itH_I)
+
+    Based on https://arxiv.org/abs/2012.09238.
+
+    """
 
     def __init__(
         self,
@@ -36,14 +41,14 @@ class InteractionTrotterStep(Qubrick):
         """
         return self._batched_hamming_weight_phasing_qubrick
 
-    def _compute(self, target_reg, data, ctrl=0):
-        """Compute the time evolution term.
+    def _compute(self, target_reg: Qubits, data: InteractionTermData, ctrl: int | Qubits = 0):
+        """Compute the time evolution of the interaction term.
 
         Args:
-            target_reg (Qubits): Qubit register storing the system. Register is of size number_of_spin_orbitals or
-                2*x_dimension*y_dimension.
-            data (InteractionTermData): Interaction term dataclass.
-            ctrl (int or Qubits, optional): The quantum controls that control the action of the Qubrick.
+            target_reg: Qubit register storing the system. Size of register is the number of spin orbitals or
+                2 * x_dimension * y_dimension.
+            data: Interaction term dataclass.
+            ctrl: The quantum controls that control the action of the Qubrick.
 
         Note:
             - Unlike the hopping term, the rz rotation angle is re-computed in compute because
@@ -57,8 +62,6 @@ class InteractionTrotterStep(Qubrick):
         if self.n_hwp_batches and (self.n_hwp_batches >= target_reg.num_qubits):
             raise ValueError("""Number of HWP batches must be less than
                 the size of the target register.""")
-
-        qc = self.get_qc()
 
         # Sign: angle is negative because the sign of potential term is positive,
         # and the sign of Rz is opposite of sign of PPRs by gate definition.
@@ -76,7 +79,8 @@ class InteractionTrotterStep(Qubrick):
             self.batched_hamming_weight_phasing_qubrick.compute(angle, rotation_reg, ctrl)
             self.catalyst1 = self.batched_hamming_weight_phasing_qubrick.get_result_qreg("catalyst_reg")
         else:
-            qc.rz(angle, rotation_reg, ctrl)
+            if isinstance(rotation_reg, Qubits):
+                rotation_reg.rz(angle, cond=ctrl)
 
         for term in interaction_indices:
             target_reg[term[1]].x(target_reg[term[0]])
@@ -86,4 +90,4 @@ class InteractionTrotterStep(Qubrick):
                 self.batched_hamming_weight_phasing_qubrick.compute(-angle, target_reg, ctrl)
                 self.catalyst2 = self.batched_hamming_weight_phasing_qubrick.get_result_qreg("catalyst_reg")
             else:
-                qc.rz(-angle, target_reg, ctrl)
+                target_reg.rz(-angle, cond=ctrl)

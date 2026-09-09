@@ -83,7 +83,7 @@ def build_baseline_qubricks(num_batches: int = 1) -> HubbardPlaquetteTrotterizat
     """Instantiate the baseline qubricks.
 
     Args:
-        num_batches (int, optional): Number of Hamming weight phasing batches. Defaults to 1.
+        num_batches: Number of Hamming weight phasing batches. Defaults to 1.
 
     Returns:
         HubbardPlaquetteTrotterizationIPG: Trotterized time evolution operator using IPG term ordering.
@@ -123,8 +123,8 @@ def build_improved_qubricks(
     """Instantiate the improved qubricks.
 
     Args:
-        num_batches (int, optional): Number of Hamming weight phasing batches. Defaults to 1.
-        use_black_box (bool, optional): Whether to use black box qubricks for ZX-optimized AV counts. Defaults to True.
+        num_batches: Number of Hamming weight phasing batches. Defaults to 1.
+        use_black_box: Whether to use black box qubricks for ZX-optimized AV counts. Defaults to True.
 
     Returns:
         tuple[HubbardPlaquetteTrotterizationPIGClosedControl, HubbardPlaquetteTrotterizationIPG]:
@@ -136,7 +136,7 @@ def build_improved_qubricks(
         n_hwp_batches=num_batches,
         rot_is_rz=True,
         preserve_global_phase=False,
-        turn_on_cnots=False,  # Disable CNOTs on catalysts called for each HWP
+        turn_on_cnots=False,  # disable CNOTs on catalysts called for each HWP
         use_black_box=use_black_box,  # blackbox for adders
     )
 
@@ -145,7 +145,7 @@ def build_improved_qubricks(
     two_mode_ffft_qbk = TwoModeFFFTViaPPRs(use_black_box=use_black_box)
     fswap_block_qbk = FermionicSwapWithReplaceAVOpt(
         use_black_box=use_black_box
-    )  # bb won't show on circuit diagram (qc.draw)
+    )  # Note: blackbox won't show on circuit diagram (qc.draw)
     localize_plaquettes_qubrick = PinkLocalizedFermionicSwapNetworkWithReplace(fswap_block_qbk)
 
     pink_plaquette_trotter_step = PlaquetteTrotterStep(
@@ -182,13 +182,13 @@ def baseline_computation(
     fermi_hubbard_data: FermiHubbardData,
     circuit_data: CircuitData,
 ) -> None:
-    """_summary_
+    """Run Trotter evolution with baseline qubricks.
 
     Args:
-        qc (QPU): _description_
-        psi_register (Qubits): _description_
-        fermi_hubbard_data (FermiHubbardData): _description_
-        circuit_data (ErrorBudget): _description_
+        qc: The QPU instance.
+        psi_register: System register.
+        fermi_hubbard_data: Fermi Hubbard data class containing evolution parameters.
+        circuit_data: Data class containing circuit parameters.
     """
     time_evolution = build_baseline_qubricks(num_batches=circuit_data.no_batches)
 
@@ -227,16 +227,14 @@ def improved_computation(
     circuit_data: CircuitData,
     use_black_box: bool = True,
 ) -> None:
-    """_summary_
+    """Run Trotter evolution with improved construction qubricks.
 
     Args:
-        qc (QPU): _description_
-        psi_register (Qubits): _description_
-        phase_register (Qubits): _description_
-        fermi_hubbard_data (FermiHubbardData): _description_
-        circuit_data (ErrorBudget): _description_
-        use_black_box (bool, optional): _description_. Defaults to True.
-
+        qc: The QPU instance.
+        psi_register: System register.
+        fermi_hubbard_data: Fermi Hubbard data class containing evolution parameters.
+        circuit_data: Data class containing circuit parameters.
+        use_black_box: If True, uses black box AV counts. Defaults to True.
     """
     n_phase_qubits = int(np.ceil(np.log2(circuit_data.no_queries))) + 1
     phase_register = Qubits(n_phase_qubits, "phase_reg", qc)

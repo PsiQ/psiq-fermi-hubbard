@@ -118,7 +118,7 @@ def test_invalid_inputs_interaction_data():
 
 
 def test_vanilla_defaults_and_properties():
-    """Test default values and computed properties of Vanilla2DFermiHubbardData."""
+    """Test default values and computed properties of FermiHubbardData."""
     # Test default values
     fh_data = FermiHubbardData(x_dim=4, y_dim=4, total_evolution_time=1.0, n_trotter_steps=5)
 

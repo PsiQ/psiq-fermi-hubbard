@@ -26,7 +26,9 @@ class FermiHubbardData:
     Args:
         x_dim (int): Lattice width (must be even).
         y_dim (int): Lattice height (must be even).
-        total_evolution_time (float): Total time for quantum evolution. Note this is a pre-normalised time, the qubricks will divide by the one-norm of the Hamiltonian, so implements e^{-iH*total_evolution_time/(one_norm_of_H)}.
+        total_evolution_time (float): Total time for quantum evolution.
+            Note: this is a pre-normalized time, the qubricks will divide by the one-norm of the Hamiltonian,
+            so implements e^{-iH*total_evolution_time/(one_norm_of_H)}.
         n_trotter_steps (int): Number of Trotter steps for time evolution.
         enumeration (list or np.ndarray, optional): Site enumeration for spin-up
             and spin-down sectors. If None, uses high-low enumeration with simple snaking i.e. pink plaquettes not initially localised spin up sector has [0,..,L^2-2] fermionic mode labels, spin down sector has [L^2,...,2*L^2].

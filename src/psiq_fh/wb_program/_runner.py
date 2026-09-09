@@ -5,7 +5,6 @@ import warnings
 from collections.abc import Callable, Iterable
 from typing import Literal
 
-from construct_tools import Circuit
 from psiqdk.workbench import QPU, Qubits
 from psiqdk.workbench.compilation.filters.elementary_filters._ross_selinger_synthesis import (
     RossSelingerSynthFilter,
@@ -111,9 +110,12 @@ class FermiHubbardQRERunner:
         total_num_qubits: int | None = None,
     ) -> tuple[QPU, dict[str, int | float]]:
         """Args:
-            x_dim (int): _description_
-            y_dim (int): _description_
-            use_black_box (bool, optional): _description_. Defaults to True.
+            x_dim: The x dimension of the physical lattice in the target system.
+            y_dim: The y dimension of the physical lattice in the target system.
+            use_mixed_fallback: If True, uses the mixed fallback for rotation synthesis. Defaults to True.
+            use_black_box: If True, uses black box qubricks for active volume. Defaults to True.
+            save_callgraph: If True, saves the callgraph data. Defaults to False.
+            total_num_qubits: If None, allocates enough qubits to fit the circuit. Defaults to None.
 
         Returns:
             tuple[QPU, dict[str, int | float]]
@@ -175,10 +177,10 @@ class FermiHubbardQRERunner:
         """Retrieve the metrics data for the given lattice sizes.
 
         Args:
-            use_mixed_fallback (bool, optional): Whether to use the mixed fallback for rotation synthesis.
+            use_mixed_fallback: Whether to use the mixed fallback for rotation synthesis.
                 Defaults to True.
-            use_black_box (bool, optional): Whether to use the black box qubricks for active volume. Defaults to True.
-            save_callgraphs (bool, optional): Whether to save the callgraph data. Defaults to False.
+            use_black_box: Whether to use the black box qubricks for active volume. Defaults to True.
+            save_callgraphs: Whether to save the callgraph data. Defaults to False.
 
         Returns:
             dict[int, dict[str, int | float]]: metrics data for the given lattice sizes.

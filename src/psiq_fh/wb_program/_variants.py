@@ -20,7 +20,7 @@ class Variant:
 
     Defined to avoid repeated `if variant == ...` guards.
 
-    If other workflows become desireable, this dataclass will need reworked to be
+    If other workflows become desirable, this dataclass will need reworked to be
     more easily extensible.
 
     Args:
@@ -62,11 +62,11 @@ class Variant:
         """Run qubrick computation for the given variant.
 
         Args:
-            qc (QPU): QPU instance.
-            psi_register (Qubits): System register
-            fermi_hubbard_data (Vanilla2DFermiHubbardData): Data class for the Fermi Hubbard model
-            circuit_data (CircuitData): Circuit data from error budget optimization
-            use_black_box (bool, optional): Whether to use the black box qubricks for active volume. Defaults to True.
+            qc: QPU instance.
+            psi_register: System register
+            fermi_hubbard_data: Data class for the Fermi Hubbard model
+            circuit_data: Circuit data from error budget optimization
+            use_black_box: Whether to use the black box qubricks for active volume. Defaults to True.
         """
         if self.name == "baseline":
             baseline_computation(

@@ -9,7 +9,7 @@ def _compute_queries_sin(QPE_error: float, evolution_time: float, dpkb: bool = T
     Args:
         QPE_error: Target root-mean-squared error in the phase.
         evolution_time: Evolution time used in the QPE unitary.
-        dpkb: Double phase kickback, which approximately halves the number of calls.
+        dpkb: If True, uses double phase kickback to approximately half the number of calls.
         power_of_two: Restrict the phase register to a power of two.
 
     Returns:
@@ -40,7 +40,7 @@ def _compute_queries_berry(QPE_error: float, evolution_time: float, dpkb: bool =
     Args:
         QPE_error: Target root-mean-squared error in the phase.
         evolution_time: Evolution time used in the QPE unitary.
-        dpkb: Double phase kickback, which approximately halves the number of calls.
+        dpkb: If True, uses double phase kickback to approximately half the number of calls.
         power_of_two: Restrict the phase register to a power of two.
 
     Returns:
@@ -76,8 +76,8 @@ def compute_n_queries(
         QPE_error: Target root-mean-squared error in the phase.
         evolution_time: Evolution time used in the QPE unitary.
         sin_window: Use the two-ancilla sin-window QPE variant. See Sect 2B of
-            https://journals.aps.org/prx/pdf/10.1103/PhysRevX.8.041015.
-        dpkb: Double phase kickback, which approximately halves the number of calls to the
+            https://journals.aps.org/prx/abstract/10.1103/PhysRevX.8.041015.
+        dpkb: If True, uses double phase kickback to approximately half the number of calls to the
             unitary by doing bidirectional control.
         power_of_two: Restrict the phase register to a power of two, so the final QFT acts on
             a power-of-two register.

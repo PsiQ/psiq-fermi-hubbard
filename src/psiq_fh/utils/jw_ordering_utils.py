@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 ### Functions to generate Jordan-Wigner ordering enumerations
 
 
-def pink_happy_enum(L_x: int, L_y: int = None):
+def pink_happy_enum(L_x: int, L_y: int | None = None):
     """Generate a (L_x x L_y) NumPy array with values snaking right then left,
     forming 2x2 squares so that the pink plaquettes from arxiv:2012.09238 are local.
 
@@ -65,15 +65,15 @@ def pink_happy_enum(L_x: int, L_y: int = None):
     return pink_happy_enum_array
 
 
-def generate_high_low_enum(L_x: int, L_y: int = None, pink_happy=False):
+def generate_high_low_enum(L_x: int, L_y: int | None = None, pink_happy: bool = False):
     """Generate an enumeration pattern with spin-up assigned to low indices and spin-down to high indices.
 
     This layout is intended to make fSWAP operations more efficient, as the interaction term is already local.
 
     Args:
-        L_x (int): The size of the lattice (must be even) in the x axis.
-        L_y (int, optional): The size of the lattice (must be even) in the y axis.
-        pink_happy (bool): If True, generates a snaking pattern so that pink plaquettes are local.
+        L_x: The size of the lattice (must be even) in the x axis.
+        L_y: The size of the lattice (must be even) in the y axis.
+        pink_happy: If True, generates a snaking pattern so that pink plaquettes are local.
             If False, uses a simple left-to-right pattern.
 
     Returns:
@@ -96,12 +96,12 @@ def generate_high_low_enum(L_x: int, L_y: int = None, pink_happy=False):
     return (spin_up_sector, spin_down_sector)
 
 
-def generate_even_odd_enum(L_x: int, L_y: int = None):
+def generate_even_odd_enum(L_x: int, L_y: int | None = None):
     """Generate an enumeration pattern with spin-up assigned to even indices and spin-down to odd indices.
 
     Args:
-        L_x (int): The size of the lattice (must be even) in the x axis.
-        L_y (int, optional): The size of the lattice (must be even) in the y axis.
+        L_x: The size of the lattice in the x axis, must be even.
+        L_y: The size of the lattice in the y axis, must be even.
 
     Returns:
         tuple[np.ndarray, np.ndarray]: A tuple of two (lattice_size x lattice_size) arrays representing
@@ -127,7 +127,7 @@ def validate_enumerations(enumerations: list[NDArray]) -> None:
         enumerations (List[np.darray]): list of enumerations.
 
     Raises:
-        ValueError if any of the above criteria are not met.
+        ValueError if any of the below criteria are not met.
 
     Note:
         - Checks that we only have maximum 2 enumerations as we only support spin 1/2 or spinless.
@@ -167,13 +167,13 @@ def generate_interaction_enumeration_indices(enumerations: list[NDArray]) -> lis
     Returns:
         List: interaction_indices, pink_plaquette_indices, gold_plaquettes_indices.
 
-    Note: if only one spin sector, interaction indices is an empty list.
+    Note:
+        - If only one spin sector, interaction indices is an empty list.
 
     Example:
-        spin_up = np.array([[0, 1, 2, 3], [4, 5, 6, 7]])
-        spin_down = np.array([[8, 9, 10, 11], [12, 13, 14, 15]])
-        interaction_indices = generate_interaction_enumeration_indices([spin_up, spin_down])
-        print(interaction_indices)
+        For: spin_up = np.array([[0, 1, 2, 3], [4, 5, 6, 7]])
+             spin_down = np.array([[8, 9, 10, 11], [12, 13, 14, 15]])
+        Calling this function on [spin_up, spin_down] returns:
             [[0, 8], [1, 9], [2, 10], [3, 11], [4, 12], [5, 13], [6, 14], [7, 15]]
     """
     validate_enumerations(enumerations)
@@ -193,26 +193,24 @@ def generate_interaction_enumeration_indices(enumerations: list[NDArray]) -> lis
 
 
 def generate_plaquette_enumeration_indices(
-    enumerations,
+    enumerations: list[NDArray],
     color: Literal["pink", "gold"],
 ):
     """Generates indices from enumerations.
 
     Args:
         enumerations: list of numpy arrays, enumerations for the spin up and spin down sectors.
-        color (str): describes whether the plaquette is either pink or gold (see arxiv:2012.09238).
+        color: describes whether the plaquette is either pink or gold (see arxiv:2012.09238).
 
     Returns:
         List: plaquette_indices (can be pink or gold type)
 
     Example:
-        spin_up = np.array([[0,1,2,3],[4,5,6,7]])
-        spin_down = np.array([[8,9,10,11],[12,13,14,15]])
-        pink_indices = generate_plaquette_enumeration_indices([spin_up,spin_down],"pink")
-        print(pink_indices)
+        For: spin_up = np.array([[0,1,2,3],[4,5,6,7]])
+             spin_down = np.array([[8,9,10,11],[12,13,14,15]])
+        Calling this function on [spin_up,spin_down] with color="pink" returns:
             [[0, 4, 5, 1], [2, 6, 7, 3], [8, 12, 13, 9], [10, 14, 15, 11]]
-        gold_indices = generate_plaquette_enumeration_indices([spin_up,spin_down],"gold")
-        print(gold_indices)
+        And calling this function on [spin_up,spin_down] with color="gold" returns:
             [[5, 1, 2, 6], [7, 3, 0, 4], [13, 9, 10, 14], [15, 11, 8, 12]]
     """
     validate_enumerations(enumerations)
@@ -235,16 +233,14 @@ def generate_plaquette_enumeration_indices(
     # In the 2x2 case we don't consider the gold plaquette -- if we have periodic boundary conditions
     # the gold plaquette and pink plaquette are the same and so don't need to do Trotter. To apply
     # periodic boundary conditions in the 2x2 case this is equivalent to multiplying the kinetic coefficient
-    # by 2. The matching 2x2 test fixtures used to hardcode these indices and omit gold
-    # evolution entirely; they now feed in an enumeration so the indices are generated
-    # with periodic boundary conditions instead.
+    # by 2
     if color == "gold" and len(plaquette_indices) == len(enumerations):
         plaquette_indices = []
 
     return plaquette_indices
 
 
-def shift_enumeration(enumeration):
+def shift_enumeration(enumeration: NDArray):
     """Shift a square enumeration pattern so that pink indices become gold.
     This operates on a single spin sector represented by an n x n matrix.
 
@@ -266,8 +262,10 @@ def shift_enumeration(enumeration):
     return shifted_enumeration
 
 
-def get_plaqs(enumerations, snaked: bool = False, plaquette_color: str = "pink"):
-    """Return an array of 2 x 2 plaquettes from one or more spin-sector enumerations.
+def get_plaqs(
+    enumerations: NDArray | list[NDArray], snaked: bool = False, plaquette_color: Literal["pink", "gold"] = "pink"
+):
+    """Returns an array of 2 x 2 plaquettes from one or more spin-sector enumerations.
 
     Accepts either:
         - a single 2-D array (L x L), or
@@ -275,8 +273,8 @@ def get_plaqs(enumerations, snaked: bool = False, plaquette_color: str = "pink")
 
     Args:
         enumerations: np.ndarray (L x L) or sequence of such arrays.
-        snaked (bool): If True, reverse every other 2-row block to create a snaking order.
-        plaquette_color (str): "pink" (default) or "gold". For "gold", each sector is shifted.
+        snaked: If True, reverse every other 2-row block to create a snaking order.
+        plaquette_color: "pink" (default) or "gold". For "gold", each sector is shifted.
 
     Returns:
         np.ndarray with shape (S * N, 2, 2) where:
@@ -317,7 +315,7 @@ def get_plaqs(enumerations, snaked: bool = False, plaquette_color: str = "pink")
     if plaquette_color == "gold":
         enums = [shift_enumeration(e) for e in enums]
 
-    #  Extract 2×2 plaquettes for each sector
+    # Extract 2×2 plaquettes for each sector
     n_total_plaqs = (rows // 2) * (cols // 2)
     plaqs = np.empty((len(enums), n_total_plaqs, 2, 2), dtype=enums[0].dtype)
 
