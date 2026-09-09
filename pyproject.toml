@@ -1,0 +1,80 @@
+[project]
+name = "psiq-fermi-hubbard-gsee"
+version = "0.1.0"
+description = "Qubricks and tests for 2D Fermi-Hubbard plaquette Trotterization, as used in arXiv:XXXX.XXXXX"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+authors = [
+  { name = "Sukin (Dylan) Sim", email = "ssim@psiquantum.com" },
+  { name = "Harriet Apel", email = "hapel@psiquantum.com" },
+  { name = "Brendan Reid", email = "breid@psiquantum.com" },
+  { name = "William A. Simon" },
+  { name = "Jessica Lemieux" },
+  { name = "Gideon Uchehara" },
+  { name = "Cristian Cortes" },
+  { name = "Sean Greenaway" },
+  { name = "Carys Harvey" },
+  { name = "Michal Stechly" },
+  { name = "Trevor Vincent" },
+]
+
+dependencies = [
+  "psiqdk>=2.4.0",
+  "openfermion>=1.8.1",
+  "numpy>=2.4.6",
+  "scipy>=1.17.1",
+  "matplotlib>=3.11.1",
+  "pandas>=3.0.5",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.30,<0.10.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "psiq_fh"
+
+[dependency-groups]
+dev = [
+  "ruff>=0.16.4",
+  {include-group = "test"},
+]
+test = [
+  "pytest>=8",
+  "pytest-xdist>=3.8.0",
+]
+
+jupyter = [
+  "jupyter>=1.1.1",
+  "nbconvert>=7.16.6",
+]
+
+[tool.ruff]
+line-length = 120
+exclude = ["examples", "tests"]
+
+[tool.ruff.lint]
+preview = true
+select = ["D"]
+
+# Pre-existing docstring layout in the upstream code, not related to the copyright
+# header (that is gone, along with the D200/D208/D212 ignores it needed). 83 summaries
+# run straight into their description and 16 don't end in a period. Fixing them is
+# editorial rather than mechanical - several summaries wrap across two lines, so
+# inserting a blank line after line 1 would split a sentence. Left as-is because this is
+# a frozen snapshot; revisit if the repo ever becomes maintained.
+[tool.ruff.lint.per-file-ignores]
+"src/psiq_fh/**/*.py" = [
+  "D205",  # 1 blank line required between summary line and description
+  "D415",  # first line should end with a period, question mark, or exclamation point
+]
+"__init__.py" = [
+  "D104",  # Missing docstring in public package
+  "D205",  # 1 blank line required between summary line and description
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
