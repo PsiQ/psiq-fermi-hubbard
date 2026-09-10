@@ -357,7 +357,7 @@ class TwoModeFFFTViaControlledHad(Qubrick):
             qubits_i[index].x(qubits_j[index])
 
         for index in range(len(qubits_i)):
-            qubits_i[index].z(ctrl | qubits_j[index])
+            (qubits_i[index] | qubits_j[index] | ctrl).reflect()
 
 
 class TwoModeFFFTViaPPRs(Qubrick):

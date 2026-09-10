@@ -26,7 +26,7 @@ def local_fswap_op(qubit_i, qubit_j, ctrl=0):
             Control qubit.
     """
     # Parity/sign handling for fermions in this framework.
-    qubit_i.z(qubit_j | ctrl)
+    (qubit_i | qubit_j | ctrl).reflect()
 
     # Adjacent (controlled) SWAP between the two wires.
     qubit_i.swap(qubit_j, ctrl)
