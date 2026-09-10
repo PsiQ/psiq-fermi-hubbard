@@ -1,4 +1,4 @@
-# PsiQuantum Fermi Hubbard: Qubricks for Trotterized Fermi Hubbard in active volume architectures
+# Qubricks for Trotterized Fermi Hubbard in active volume architectures
 
 This repository accompanies the paper "Compiling the 2D Fermi-Hubbard ground-state energy estimation algorithm for active volume architectures" ([arxiv:2609.05316](https://arxiv.org/abs/2609.05316)).
 
@@ -23,7 +23,7 @@ We hope that these additions will come in time!
 For installation, first clone this repository onto your local machine. We have used `uv` ([link](https://docs.astral.sh/uv/)) as a package manager and we highly recommend installing `uv` locally to use this package.
 
 
-For a standard installation, pulling in the latest requirements for your version of Python
+For a standard installation, pulling in the latest requirements for your version of Python:
 ```sh
 uv venv && uv pip install -e .
 
