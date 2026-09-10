@@ -22,12 +22,12 @@ from psiq_fh.trotterization.hopping import PlaquetteTrotterStep, exptXXYY, exptX
 
 
 def compute_unitary_of_plaquette_operator():
-    r"""Compute unitary matrix for plaquette operator, corresponding to periodic hopping around square plaquette.
+    """Compute unitary matrix for plaquette operator, corresponding to periodic hopping around square plaquette.
 
     Notes:
         - Denoted as K in arxiv:2012.09238 where,
         K = a1† a4 + a1† a2 + a2† a1 + a2† a3 + a3† a2 + a3† a4 + a4† a1 + a4† a3 and,
-        a_i/a_i^\dagger are fermionic ladder operators
+        a_i/a_i† are fermionic ladder operators
 
     """
     # Qubit operator for fermionic creation operator at qubit 0 padded to act on a 4 qubit system

@@ -24,7 +24,7 @@ def test_plaquette_qre(
     Note:
         - See Appendix E of 2012.09238, Eq. E1
         - While in the ref above it is claimed that you can merge the first and last term,
-        it is unclear that you can do that so per step.
+        it is unclear that you can do that per step.
         - We assume you make 2 calls to the interaction term. So instead of 4 L^2 rotations,
         we have 5 L^2 rotations total, where 2 L^2 comes from interaction.
     """

@@ -224,7 +224,7 @@ def test_nonlocal_fswap_av_optimized(num_qubits):
 @pytest.mark.parametrize("num_qubits", [1, 2, 3])
 def test_nonlocal_fswap_av_optimized_unitary(num_qubits):
     """Verify decompositions of fSWAP blocks that
-    are optimizied for AV via unitary matrix filter.
+    are optimized for AV via unitary matrix filter.
     """
     # Generate a fSWAP block
     unitary = UnitaryMatrixFilter()
