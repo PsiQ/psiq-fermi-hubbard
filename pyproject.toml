@@ -1,7 +1,7 @@
 [project]
 name = "psiq-fermi-hubbard-gsee"
 version = "0.1.0"
-description = "Qubricks and tests for 2D Fermi-Hubbard plaquette Trotterization, as used in arXiv:XXXX.XXXXX"
+description = "Qubricks and tests for 2D Fermi-Hubbard plaquette Trotterization, as used in arXiv:2609.05316"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
 authors = [
