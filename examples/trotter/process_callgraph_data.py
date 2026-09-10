@@ -10,6 +10,7 @@ from collections import OrderedDict, defaultdict
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
+from matplotlib.axes import Axes
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -47,8 +48,8 @@ class QreAnalysis:
     def decompose_metric_cost(self, metric: str, qubrick_granularity: tuple[str, ...] = ()) -> Mapping[str, float]:
         """Decompose the cost of a metric into its per-Qubrick contributions, with optional granularity.
 
-        The retrurned dictionary is indexed by normalized Qubrick name, such that
-        `<my_qubrick>_compute_0` and `<my_qubrick>_uncompute_2` have their values summed.
+        The returned dictionary is indexed by normalized Qubrick name, such that, for example,
+        `<my_qubrick>_compute_0` and `<my_qubrick>_uncompute_2` would have their values summed.
 
         `qubrick_granularity` should be a tuple of normalized node names in `nodes`.
 
@@ -164,35 +165,20 @@ def plot_av_breakdown_over_lattice_sizes(
     show_legend=True,
     show_xlabel=True,
     show_ylabel=True,
-):
+)->Axes:
     """Plot a stacked active-volume breakdown for multiple call graphs.
 
-    Parameters
-    ----------
-    data
-        Sequence of `QreAnaylsis` classes, one per lattice size.
-
-    lattice_sizes
-        Sequence of lattice sizes corresponding to ``data``.
-
-    metric
-        Metric to extract.
-
-    granularity
-        The Qubrick granularity to stop at.
-
-    groups
-        Mapping from displayed category to component-name substrings.
-
-    others_label
-        Category for unmatched components.
-
-    show_percentages
-        If True, place percentages inside sufficiently large stack sections.
+    Args:
+        data: Sequence of `QreAnaylsis` classes, one per lattice size.
+        lattice_sizes: Sequence of lattice sizes corresponding to ``data``.
+        metric: Metric to extract.
+        granularity: The Qubrick granularity to stop at.
+        groups: Mapping from displayed category to component-name substrings.
+        others_label: Category for unmatched components.
+        show_percentages: If True, place percentages inside sufficiently large stack sections.
 
     Returns:
-    -------
-    matplotlib.axes.Axes
+        matplotlib.axes.Axes
     """
     if groups is None:
         groups = OrderedDict(
@@ -214,7 +200,7 @@ def plot_av_breakdown_over_lattice_sizes(
     breakdowns = []
     expected_totals = []
 
-    for lattice_size, qre in zip(lattice_sizes, data):
+    for qre in data:
         components = qre.decompose_metric_cost(metric, granularity)
         grouped = group_active_volume_components(
             components,
