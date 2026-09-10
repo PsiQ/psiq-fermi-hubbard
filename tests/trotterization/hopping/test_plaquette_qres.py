@@ -26,16 +26,15 @@ def test_plaquette_qre(lattice_size, plaquette_color):
     total_num_qubits = number_spin_sites
 
     # Set up QPU instance:
-    qc = QPU(filters=[">>witness>>", ">>buffer>>"])
-    qc.reset(total_num_qubits)
+    qc = QPU(num_qubits=total_num_qubits, filters=[">>witness>>", ">>buffer>>"])
 
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
     # For one step
-    evolution_time = 0.83  # sets angle. Note if time is pi and coeff is 1 then no rotations in metrics as all simplify.
+    evolution_time = 0.83  # sets angle - note if time is pi and coeff is 1 then no rotations in metrics as all simplify
     enumeration = generate_even_odd_enum(lattice_size)
 
-    kinetic_coefficient = 1  #
+    kinetic_coefficient = 1
     plaq_data = PlaquetteTermData(plaquette_color, enumeration, evolution_time, kinetic_coefficient)
 
     plaquette_trotter_step = PlaquetteTrotterStep()
@@ -53,7 +52,7 @@ def test_plaquette_qre(lattice_size, plaquette_color):
 @pytest.mark.parametrize("plaquette_color", ["pink", "gold"])
 def test_plaquette_qre_with_hwp(lattice_size, plaquette_color):
     """Verify plaquette rotation count and T-count where we
-       assume Hamming weight phasing.
+       utilize Hamming weight phasing.
 
     Note:
         - See Appendix B.2 of 2411.02160 for cost
@@ -65,6 +64,7 @@ def test_plaquette_qre_with_hwp(lattice_size, plaquette_color):
 
     # Set up QPU instance:
     qc = QPU(
+        num_qubits=total_num_qubits,
         pre_filters=[
             ">>clean-ladder-filter>>",
             ">>single-control-filter>>",
@@ -72,12 +72,11 @@ def test_plaquette_qre_with_hwp(lattice_size, plaquette_color):
         ],
         filters=[">>buffer>>"],
     )
-    qc.reset(total_num_qubits)
 
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
     # For one step
-    evolution_time = 0.91  # sets angle. Note if time is pi and coeff is 1 then no rotations in metrics as all simplify
+    evolution_time = 0.91  # sets angle - note if time is pi and coeff is 1 then no rotations in metrics as all simplify
     enumeration = generate_even_odd_enum(lattice_size)
 
     hw_qbk = ComputeHammingWeightGroupOfThrees()
@@ -97,7 +96,7 @@ def test_plaquette_qre_with_hwp(lattice_size, plaquette_color):
     t_count = metrics["t_gates"]
     assert t_count == 4 * lattice_size**2
 
-    # Analytical expression for Toffs for generalized phase gradient for 1 Trotter step
+    # Analytical expression for Toffolis for generalized phase gradient for 1 Trotter step
     lsquared = lattice_size**2
     w_lsquared = lsquared.bit_count()
     n_toffs_phase_grad = lsquared + np.floor(np.log2(lattice_size**2)).astype(int) - np.array(w_lsquared) + 1
@@ -123,6 +122,7 @@ def setup_plaquette_circuits_for_hwp_qre_testing(n_batches, lattice_size, plaque
 
     # Set up QPU instance:
     qc = QPU(
+        num_qubits=total_num_qubits,
         pre_filters=[
             ">>clean-ladder-filter>>",
             ">>single-control-filter>>",
@@ -130,11 +130,10 @@ def setup_plaquette_circuits_for_hwp_qre_testing(n_batches, lattice_size, plaque
         ],
         filters=[">>buffer>>"],
     )
-    qc.reset(total_num_qubits)
 
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
-    evolution_time = 0.66  # sets angle. Note if time is pi and coeff is 1 then no rotations in metrics as all simplify
+    evolution_time = 0.66  # sets angle - note if time is pi and coeff is 1 then no rotations in metrics as all simplify
 
     if n_batches:
         hamming_weight_qubrick = ComputeHammingWeightGroupOfThrees()

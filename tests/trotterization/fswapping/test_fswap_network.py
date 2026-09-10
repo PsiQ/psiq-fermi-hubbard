@@ -31,18 +31,19 @@ def get_elements_excluding_indices(arr, input_indices):
 
 
 def find_consecutive_powers_sum(target_reg, count=4):
-    """Find 'count' consecutive powers of two that sum to the given target value
-    read off from the target register. Returns the powers if found, otherwise
+    """Find consecutive powers of two that sum to the given target value as
+    read from a target register. Returns the powers if found, otherwise
     returns None.
-    This is used to scan the register to find the first group of 4 consecutive bits
-    that read as the integer 15 (or "1111" in binary).
+    By default, this scans the register to find the first group of 4 consecutive bits
+    that read as the integer 15 (i.e., "1111" in binary).
 
     Args:
-            target_reg: A quantum register.
+        target_reg: A quantum register.
+        count: The number of consecutive bits to sum to the target value.
 
     Returns:
-            np.ndarray or None: A NumPy array of 4 consecutive indices whose
-                                bits read as 15, or None if not found.
+        np.ndarray or None: A NumPy array of 4 consecutive indices whose
+                            bits read as 15, or None if not found.
     """
     target_val = target_reg.read()
     # Total multiplier for powers of 2 sum: 2^n * (2^count - 1)
@@ -70,13 +71,13 @@ def find_consecutive_powers_sum(target_reg, count=4):
 )
 @pytest.mark.parametrize("enumeration", ["high_low_pink_happy"])
 def test_fswap_network_ket(lattice_size, plaquette_color, network_qubrick_cls, enumeration):
-    """Clifford-sim test: each plaquette prepared as |1111⟩ should be localized
+    """Clifford-sim test: each plaquette prepared as |1111⟩ should be localized to four consecutive qubits
     by the chosen fSWAP network, with all other qubits left at |0⟩.
-    We do not check global phase.
 
     Notes:
         - For 'pink', we localize pink plaquettes from the given enumeration.
         - For 'gold', we localize gold plaquettes by using shifted enumerations for indexing.
+        - We do not check global phase.
     """
     # Enumeration selection
     if enumeration == "high_low_pink_happy":
@@ -97,8 +98,8 @@ def test_fswap_network_ket(lattice_size, plaquette_color, network_qubrick_cls, e
     localised_indices = []
 
     for idx in np.arange(len(plaquette_indices_orig)):
-        qc = QPU(filters=[">>clifford-qpu>>", ">>buffer>>"])
-        qc.reset(total_num_qubits)
+        qc = QPU(num_qubits=total_num_qubits, filters=[">>clifford-qpu>>", ">>buffer>>"])
+
         target_reg = Qubits(number_spin_sites, "psi", qc)
 
         # Prepare |1111⟩ on the selected plaquette indices
@@ -167,13 +168,13 @@ def get_phase(initial_list: List[int], states: List[int], final_permutation: Lis
        input qubit
 
     Args:
-        initial_list (list): List of input qubit indices
-        states (list): List of input computational basis state of the input qubit
+        initial_list: List of input qubit indices
+        states: List of input computational basis state of the input qubit
             indices (1's and 0's)
-        final_permutation (list): List of output qubit indices
+        final_permutation: List of output qubit indices
 
     Returns:
-        phase (int): Phase from the fSWAP block applied to an input computational
+        phase: Phase from the fSWAP block applied to an input computational
             basis state, -1 or 1.
     """
     # Step 1: Extract "on" elements from the initial list
@@ -204,7 +205,6 @@ def binary_list_to_int(binary_list):
     return int(binary_string, 2)
 
 
-# TODO: beef this up with pink-happy
 @pytest.mark.parametrize("fswap_qbk", [FermionicSwapWithReplace, FermionicSwapWithReplaceAVOpt])
 def test_fswap_block_phase(fswap_qbk):
     """Test that the fswap block returns the expected phase/sign.
@@ -219,8 +219,7 @@ def test_fswap_block_phase(fswap_qbk):
     for i, j in list(combinations(np.arange(size_of_fswap_block), 2)):
         # Try every initial computational basis state
         for init_val in np.arange(2**size_of_fswap_block):
-            qc = QPU()
-            qc.reset(size_of_fswap_block)
+            qc = QPU(num_qubits=size_of_fswap_block)
 
             qubs = Qubits(size_of_fswap_block, "qubs", qc)
             qubs.write(init_val)

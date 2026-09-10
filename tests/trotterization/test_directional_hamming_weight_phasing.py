@@ -39,8 +39,7 @@ def test_directional_hamming_weight_phasing_explicit(
         size_of_catalyst_state = max(1, int(np.ceil(np.log2(number_of_target_qubits))) + 1)
         total_number_of_qubits += 2 * size_of_catalyst_state
 
-    qc = QPU()
-    qc.reset(total_number_of_qubits)
+    qc = QPU(num_qubits=total_number_of_qubits)
     ctrl = DirectionalControlQubit(1, "ctrl", qc)
     target = Qubits(number_of_target_qubits, "target", qc)
 
@@ -93,8 +92,7 @@ def test_directional_hamming_weight_phasing_explicit(
 def test_batched_directional_hwp(ctrl_val, number_of_target_qubits, preserve_global_phase):
     """Test batched directional hamming weight phasing reproduces behaviour of open rotation (-theta) state followed by closed rotation (theta) tower."""
     n_qubits = number_of_target_qubits + 15
-    qc = QPU(pre_filters=[">>witness>>"])
-    qc.reset(n_qubits)
+    qc = QPU(num_qubits=n_qubits, pre_filters=[">>witness>>"])
     ctrl = Qubits(1, "ctrl", qc)
     tgt = Qubits(number_of_target_qubits, "tgt", qc)
     qc.set_random()
@@ -173,22 +171,12 @@ def test_closed_control_trotter_qbk_with_no_ctrl(
     fermionic_swap_qubrick = FermionicSwapWithReplaceAVOpt(use_black_box=False)
     two_mode_ffft_qubrick = TwoModeFFFTViaPPRs(use_black_box=False)
 
-    constructed_hamiltonian = get_fermi_hubbard_hamiltonian_2x2_even_odd(
-        potential_coefficient=potential_coefficient,
-        kinetic_coefficient=kinetic_coefficient,
-        particle_hole_symmetry=particle_hole_symmetry,
-    )
-
-    time_evolution = reverse_numpy_op(expm(total_evolution_time * 1j * constructed_hamiltonian))
-
-    qc = QPU()
-    qc.reset(total_num_qubits)
+    qc = QPU(num_qubits=total_num_qubits)
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
     qc.set_param("random_seed", 42)
     qc.set_random()
     qc.write(0, ~(psi_reg).mask())
-    initial = (psi_reg).pull_state()
 
     fh_data = FermiHubbardData(
         x_dim,

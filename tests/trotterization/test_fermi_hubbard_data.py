@@ -12,6 +12,7 @@ from psiq_fh.utils.fermi_hubbard_hamiltonian import get_expected_norm
 
 
 def setup_valid_vanilla_fh_data():
+    """Setup a valid FermiHubbardData object for testing."""
     fh_data = FermiHubbardData(
         x_dim=4,
         y_dim=4,
@@ -26,6 +27,7 @@ def setup_valid_vanilla_fh_data():
 
 
 def test_invalid_inputs_fh_data():
+    """Test invalid inputs raise ValueError for FermiHubbardData."""
     # Odd dim
     with pytest.raises(ValueError, match=r"Lattice size must be even."):
         FermiHubbardData(
@@ -75,6 +77,7 @@ def test_invalid_inputs_fh_data():
 
 
 def test_invalid_inputs_plaquette_data():
+    """Test invalid inputs raise ValueError for PlaquetteTermData."""
     # color not pink nor gold
     valid_color = "pink"
     valid_enumeration = [np.array([[0, 3], [1, 2]])]
@@ -100,6 +103,7 @@ def test_invalid_inputs_plaquette_data():
 
 
 def test_invalid_inputs_interaction_data():
+    """Test invalid inputs raise ValueError for InteractionTermData."""
     valid_time = 1
     valid_norm_coeff = 1
 

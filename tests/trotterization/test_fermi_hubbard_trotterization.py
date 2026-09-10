@@ -1,7 +1,6 @@
 """Tests for the Fermi-Hubbard Trotterizaton circuit in arxiv:2012.09238."""
 
 import numpy as np
-from pandas.core.generic import T
 import pytest
 from openfermion import get_sparse_operator
 from psiqdk.algorithms import ComputeHammingWeightGroupOfThrees, PowerOfTwoBatchedHammingWeightPhasing
@@ -51,7 +50,7 @@ from psiq_fh.trotterization.catalyst_allocation import (
             1.5,
             0.4,
             10,
-        ),  # due to fixed error have to set no trotter steps sufficiently high to be a good approximation.
+        ),  # Note: due to fixed error have to set no trotter steps sufficiently high to be a good approximation.
     ],
 )
 @pytest.mark.parametrize("particle_hole_symmetry", [True, False])
@@ -64,10 +63,14 @@ def test_action_of_HubbardPlaquetteTrotterization_for_2x2_lattice(
     particle_hole_symmetry,
     trotter_qubrick,
 ):
-    # In the 2x2 case we do not include periodic boundary conditions, as an edge case:
-    # under PBC the gold plaquette coincides with the pink one, and this fixture has no
-    # gold evolution to pair with it.
-    # Defaulting to even/odd enumeration.
+    """Test the action of the HubbardPlaquetteTrotterization qubrick for a 2x2 lattice.
+
+    Notes:
+        - In the 2x2 case we do not include periodic boundary conditions, as an edge case:
+        under PBC the gold plaquette coincides with the pink one, and this fixture has no
+        gold evolution to pair with it.
+        - Defaulting to even/odd enumeration.
+    """
     x_dim = 2
     y_dim = 2
     num_state_qubits = 2 * (x_dim * y_dim)
@@ -81,8 +84,7 @@ def test_action_of_HubbardPlaquetteTrotterization_for_2x2_lattice(
 
     time_evolution = reverse_numpy_op(expm(total_evolution_time * 1j * constructed_hamiltonian))
 
-    qc = QPU()
-    qc.reset(num_state_qubits)
+    qc = QPU(num_qubits=num_state_qubits)
 
     psi_reg = Qubits(num_state_qubits, "psi", qc)
 
@@ -105,11 +107,11 @@ def test_action_of_HubbardPlaquetteTrotterization_for_2x2_lattice(
     hubbard_time_evolution.compute(psi_reg, fh_data)
     final_state = qc.pull_state()
 
-    # The two states differ by a small but non-zero global phase, so np.allclose on the
+    # Note: The two states differ by a small but non-zero global phase, so np.allclose on the
     # state vectors fails at some evolution times while fidelity does not. Bounding this
     # tolerance against the Trotter error is an open question upstream.
     # assert np.allclose(final, time_evolution @ initial) will currently fail
-    # Some tolerance 1e4 here taking the place of trotter error analysis
+    # Some tolerance 1e-4 here taking the place of trotter error analysis
     assert abs(fidelity(final_state, time_evolution @ initial) - 1) < 1e-4
 
 
@@ -121,6 +123,7 @@ def test_action_of_HubbardPlaquetteTrotterization_for_2x2_lattice(
 def test_action_of_HubbardPlaquetteTrotterization_for_2x4_lattice_on_kinetic_hamiltonian(
     total_evolution_time, trotter_qubrick
 ):
+    """Test the action of the HubbardPlaquetteTrotterization qubrick for a 2x4 lattice with kinetic only Hamiltonian."""
     x_dim = 2
     y_dim = 4
     num_state_qubits = x_dim * y_dim
@@ -138,8 +141,7 @@ def test_action_of_HubbardPlaquetteTrotterization_for_2x4_lattice_on_kinetic_ham
     constructed_hamiltonian = get_sparse_operator(kin_ham).todense()
     time_evolution = reverse_numpy_op(expm(total_evolution_time * 1j * constructed_hamiltonian))
 
-    qc = QPU()
-    qc.reset(num_state_qubits)
+    qc = QPU(num_qubits=num_state_qubits)
 
     psi_reg = Qubits(num_state_qubits, "psi", qc)
 
@@ -176,12 +178,12 @@ def test_action_of_HubbardPlaquetteTrotterization_for_2x4_lattice_on_kinetic_ham
 def test_hubbard_trotter_does_nothing_when_control_is_zero(
     potential_coefficient, total_evolution_time, number_of_trotter_steps, trotter_qubrick
 ):
+    """Test that the HubbardPlaquetteTrotterization qubrick does nothing when the control is zero."""
     x_dim = 2
     y_dim = 2
     num_state_qubits = 2 * (x_dim * y_dim)
 
-    qc = QPU()
-    qc.reset(num_state_qubits + 1)
+    qc = QPU(num_qubits=num_state_qubits + 1)
 
     ctrl = Qubits(1, "ctrl", qc)
     psi_reg = Qubits(num_state_qubits, "psi", qc)
@@ -220,21 +222,21 @@ def test_merging_trotter_terms(no_trotter_steps, lattice_size_x):
 
     number_spin_sites = 2 * (lattice_size_x * lattice_size_y)
     total_num_qubits = number_spin_sites
-    total_num_qubits += 100  # enough ancillae
+    total_num_qubits += 100  # Include enough ancillae
 
     for trotter_qbrk in [HubbardPlaquetteTrotterizationIPG, HubbardPlaquetteTrotterizationPIG]:
         # Set up QPU instance and Qubits object
         qc = QPU(
-            pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>"], filters=[">>witness>>", ">>buffer>>"]
+            num_qubits=total_num_qubits,
+            pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>"],
+            filters=[">>witness>>", ">>buffer>>"],
         )
-
-        qc.reset(total_num_qubits)
 
         # Declare Registers
         ctrl = DirectionalControlQubit(1, name="ctrl", qpu=qc, defer_rotations=True)
         psi_reg = Qubits(number_spin_sites, "psi", qc)
 
-        # instantiate data class
+        # Instantiate data class
         fh_data = FermiHubbardData(
             x_dim=lattice_size_x,
             y_dim=lattice_size_y,
@@ -246,7 +248,7 @@ def test_merging_trotter_terms(no_trotter_steps, lattice_size_x):
             particle_hole_symmetry=True,
         )
 
-        # instantiate sub-qubricks for hubbard time evolution
+        # Instantiate sub-qubricks for hubbard time evolution
         hw_qbk = ComputeHammingWeightGroupOfThrees()
         hwp_qbk = PowerOfTwoBatchedDirectionalHammingWeightPhasing(
             hw_qbk,
@@ -258,7 +260,7 @@ def test_merging_trotter_terms(no_trotter_steps, lattice_size_x):
         )
         exptXXYY_qbk = exptXXYY(hwp_qbk)
 
-        # instantiate Plaquette Trotterization Qubrick
+        # Instantiate Plaquette Trotterization Qubrick
         interaction_trotter_step = InteractionTrotterStep(hwp_qbk)
         pink_plaquette_trotter_step = PlaquetteTrotterStep(
             exptXXYY_qubrick=exptXXYY_qbk,
@@ -297,7 +299,7 @@ def test_merging_trotter_terms(no_trotter_steps, lattice_size_x):
             expected_int_count = 2 * no_trotter_steps
             expected_plaq_count = 2 * no_trotter_steps + 1
 
-        # compute
+        # Compute
         if trotter_qbrk == HubbardPlaquetteTrotterizationIPG:
             hubbard_time_evolution.compute(psi_reg, fh_data, ctrl=ctrl)
         else:
@@ -312,10 +314,15 @@ def test_merging_trotter_terms(no_trotter_steps, lattice_size_x):
 
 @pytest.mark.parametrize("lattice_size_x", [4, 6, 8])
 def test_no_cat_rots_increases_with_trotter_steps_as_expected(lattice_size_x):
-    """We expect for the ordering IPG that the number of catalyst rotations increases by one going from a single trotter
-    step to mutliple trotter steps. This is because the interaction term is merged creating a new angle for hamming weight phasing corresponding to double the evolution time for the interaction term.
-    Note this will not be the case for PIG ordering as the gold and pink evolution times are the same (aside from t and t/2 discrepancies) so the merged pink angle is equal to the merged gold angle.
-    For this PIG ordering we expect the number of catalyst to be the same between single and multiple trotter implementations.
+    """Test that the number of catalyst rotations increases as expected for IPG ordering.
+
+    For the ordering IPG, we expect that the number of catalyst rotations increases by one going from a single trotter
+    step to mutliple trotter steps. This is because the interaction term is merged, creating a new angle for hamming weight phasing
+    corresponding to double the evolution time for the interaction term.
+
+    Note this will not be the case for PIG ordering as the gold and pink evolution times are the same (aside from t and t/2 discrepancies)
+    so the merged pink angle is equal to the merged gold angle and we expect the number of catalyst to be the same between single and multiple
+    trotter implementations.
     """
     t = 1
     u = 8
@@ -337,15 +344,17 @@ def test_no_cat_rots_increases_with_trotter_steps_as_expected(lattice_size_x):
 
     for n_trotter_steps in [1, 2, 3]:
         # Set up QPU instance and Qubits object
-        qc = QPU(pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>"], filters=[">>witness>>"])
-
-        qc.reset(total_num_qubits)
+        qc = QPU(
+            num_qubits=total_num_qubits,
+            pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>"],
+            filters=[">>witness>>"],
+        )
 
         # Declare Registers
         ctrl = 0  # NOTE: Here testing the uncontrol version.
         psi_reg = Qubits(number_spin_sites, "psi", qc)
 
-        # instantiate data class
+        # Instantiate data class
         fh_data = FermiHubbardData(
             x_dim=lattice_size_x,
             y_dim=lattice_size_y,
@@ -357,7 +366,7 @@ def test_no_cat_rots_increases_with_trotter_steps_as_expected(lattice_size_x):
             particle_hole_symmetry=True,
         )
 
-        # instantiate Plaquette Trotterization Qubrick
+        # Instantiate Plaquette Trotterization Qubrick
         interaction_trotter_step = InteractionTrotterStep(hwp_qbk)
         pink_plaquette_trotter_step = PlaquetteTrotterStep(
             fermionic_swap_qubrick, two_mode_ffft_qubrick, exptXXYY_qubrick=exptXXYY_qbk
@@ -369,7 +378,7 @@ def test_no_cat_rots_increases_with_trotter_steps_as_expected(lattice_size_x):
             interaction_trotter_step, pink_plaquette_trotter_step, gold_plaquette_trotter_step
         )
 
-        # compute
+        # Compute
         hubbard_time_evolution.compute(psi_reg, fh_data, ctrl=ctrl)
         if n_trotter_steps == 1:
             cat_rot_for_one_trotter_steps = len(qc._rotation_catalyst_qubits.keys())

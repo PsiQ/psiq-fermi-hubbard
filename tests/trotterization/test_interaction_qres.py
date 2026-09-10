@@ -27,8 +27,7 @@ def test_interaction_qre(lattice_size, particle_hole_symmetry):
     total_num_qubits = number_spin_sites
 
     # Set up QPU instance:
-    qc = QPU(filters=[">>witness>>", ">>buffer>>"])
-    qc.reset(total_num_qubits)
+    qc = QPU(num_qubits=total_num_qubits, filters=[">>witness>>", ">>buffer>>"])
 
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
@@ -72,9 +71,10 @@ def test_interaction_qre_with_hwp(lattice_size):
 
     # Set up QPU instance:
     qc = QPU(
-        pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>", ">>witness>>"], filters=[">>buffer>>"]
+        num_qubits=total_num_qubits,
+        pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>", ">>witness>>"],
+        filters=[">>buffer>>"],
     )
-    qc.reset(total_num_qubits)
 
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
@@ -121,9 +121,10 @@ def setup_interaction_circuits_for_hwp_qre_testing(n_batches, lattice_size):
 
     # Set up QPU instance:
     qc = QPU(
-        pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>", ">>witness>>"], filters=[">>buffer>>"]
+        num_qubits=total_num_qubits,
+        pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>", ">>witness>>"],
+        filters=[">>buffer>>"],
     )
-    qc.reset(total_num_qubits)
 
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 

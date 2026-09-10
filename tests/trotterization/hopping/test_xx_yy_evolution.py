@@ -13,13 +13,13 @@ from psiq_fh.trotterization.hopping import exptXXYY, exptXXYYViaPPR
 @pytest.mark.parametrize("tau", [-50, -1.783, 0, 75])
 @pytest.mark.parametrize("use_ppr", [True, False])
 def test_action_of_xxyy_evolution_using_gates(tau, use_ppr):
+    """Test the action of the XXYY evolution using gates, with and without PPRs."""
     xx = pauli_sum_to_numpy(PauliSum([1, PauliMask.from_pauli_string("X0 X1")]))
     yy = pauli_sum_to_numpy(PauliSum([1, PauliMask.from_pauli_string("Y0 Y1")]))
 
     time_evolution_of_xxyy = expm(1j * tau * (xx)) @ expm(1j * tau * (yy))
 
-    qc = QPU()
-    qc.reset(2)
+    qc = QPU(num_qubits=2)
 
     qubs = Qubits(2, "qubs", qc)
 
@@ -44,8 +44,8 @@ def test_action_of_xxyy_evolution_using_gates(tau, use_ppr):
 @pytest.mark.parametrize("use_ppr", [True, False])
 @pytest.mark.parametrize("tau", [-50, -1.783, 0, 75])
 def test_xxyy_does_nothing_when_control_is_zero(tau, use_ppr):
-    qc = QPU()
-    qc.reset(3)
+    """Test that the XXYY evolution does nothing when the control is zero."""
+    qc = QPU(num_qubits=3)
 
     control = Qubits(1, "ctrl", qc)
     qubs = Qubits(2, "qubs", qc)
@@ -77,10 +77,9 @@ def test_unitary_of_exptXXYY_with_and_without_PPRs(n_parallel):
 
     # Gate-based
     UNITARY = UnitaryMatrixFilter()
-    qc = QPU(pre_filters=[UNITARY])
+    qc = QPU(num_qubits=n_qubits, pre_filters=[UNITARY])
     UNITARY.qc = qc
     UNITARY.clear()
-    qc.reset(n_qubits)
 
     tgts = Qubits(n_qubits, "tgts", qc)
 
@@ -94,10 +93,9 @@ def test_unitary_of_exptXXYY_with_and_without_PPRs(n_parallel):
 
     # PPR-based
     UNITARY = UnitaryMatrixFilter()
-    qc = QPU(pre_filters=[UNITARY])
+    qc = QPU(num_qubits=n_qubits, pre_filters=[UNITARY])
     UNITARY.qc = qc
     UNITARY.clear()
-    qc.reset(n_qubits)
 
     tgts = Qubits(n_qubits, "tgts", qc)
 

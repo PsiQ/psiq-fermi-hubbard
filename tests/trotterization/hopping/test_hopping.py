@@ -22,12 +22,12 @@ from psiq_fh.trotterization.hopping import PlaquetteTrotterStep, exptXXYY, exptX
 
 
 def compute_unitary_of_plaquette_operator():
-    r"""Compute unitary matrix for plaquette operator, corresponding to periodic hopping around the square plaquette.
+    r"""Compute unitary matrix for plaquette operator, corresponding to periodic hopping around square plaquette.
 
-    Note:
-        - Denoted as K in arxiv:2012.09238
-        - K = a1† a4 + a1† a2 + a2† a1 + a2† a3 + a3† a2 + a3† a4 + a4† a1 + a4† a3
-        - Where a_i/a_i^\dagger fermionic ladder operators
+    Notes:
+        - Denoted as K in arxiv:2012.09238 where,
+        K = a1† a4 + a1† a2 + a2† a1 + a2† a3 + a3† a2 + a3† a4 + a4† a1 + a4† a3 and,
+        a_i/a_i^\dagger are fermionic ladder operators
 
     """
     # Qubit operator for fermionic creation operator at qubit 0 padded to act on a 4 qubit system
@@ -107,11 +107,11 @@ def compute_diagonalizing_unitary():
     Note:
         - Denoted as V in arxiv:2012.09238 though the circuits are different
     """
+    n_qubits = 4
+
     # Obtain unitary for part of a plaquette that diagonalizes the operator
     UNITARY = UnitaryMatrixFilter()
-    qc = QPU(pre_filters=[UNITARY, ">>buffer>>"])
-    n_qubits = 4
-    qc.reset(n_qubits)
+    qc = QPU(num_qubits=n_qubits, pre_filters=[UNITARY, ">>buffer>>"])
     UNITARY.qc = qc
     UNITARY.clear()
 
@@ -138,11 +138,11 @@ def compute_plaquette_unitary(evolution_time, coefficient=1):
     Args:
         evolution_time: tau in arxiv:2012.09238
     """
+    n_qubits = 4
+
     # Obtain unitary for a plaquette operator
     UNITARY = UnitaryMatrixFilter()
-    qc = QPU(pre_filters=[UNITARY, ">>buffer>>"])
-    n_qubits = 4
-    qc.reset(n_qubits)
+    qc = QPU(num_qubits=n_qubits, pre_filters=[UNITARY, ">>buffer>>"])
     UNITARY.qc = qc
     UNITARY.clear()
 
@@ -174,7 +174,6 @@ def is_diagonal_matrix(arr, threshold=1e-15):
 @pytest.mark.parametrize("evolution_time", [-50, -1.783, 0, 0.154])
 @pytest.mark.parametrize("coefficient", [1, 0.826, 6])
 def test_unitaries_for_plaquette_time_evolution(evolution_time, coefficient):
-    coefficient = 1.22653
     """Check that all three unitaries (fermionic, qubit, WB) match up."""
     time_evolution_fham = compute_unitary_of_plaq_time_evolution_from_fermionic_ham(evolution_time, coefficient)
     time_evolution_qham = compute_unitary_of_plaq_time_evolution_from_qubit_ham(evolution_time, coefficient)
@@ -218,17 +217,18 @@ def test_plaquette_operator_is_correctly_diagonalized(evolution_time):
 @pytest.mark.parametrize("hwp_qbk", [None, PowerOfTwoBatchedHammingWeightPhasing])
 @pytest.mark.parametrize("coefficient", [1, 0.43])
 def test_plaquette_trotter_step_has_intended_action_on_one_plaquette(evolution_time, hwp_qbk, use_ppr, coefficient):
+    """Test that the plaquette Trotter step has the intended action on one plaquette."""
     if hwp_qbk:
         hw_qbk = ComputeHammingWeightNaive(adder=NaiveAdd())
         hwp_qbk = PowerOfTwoBatchedHammingWeightPhasing(hw_qbk)
 
     time_evolution = compute_unitary_of_plaq_time_evolution_from_qubit_ham(evolution_time, coefficient=coefficient)
 
-    qc = QPU()
     sys_qubits = 4
     hw_qubits = 6 if hwp_qbk else 0
     n_qubits = sys_qubits + hw_qubits
-    qc.reset(n_qubits)
+
+    qc = QPU(num_qubits=n_qubits)
 
     qubs = Qubits(sys_qubits, "qubs", qc)
 
@@ -271,12 +271,15 @@ def test_plaquette_trotter_step_has_intended_action_on_one_plaquette(evolution_t
     assert np.isclose(fidelity(final_state, expected_state), 1)
 
 
-# We do not normalise the time inside the qubrick so important to also include a small time in the testing suit.
 @pytest.mark.parametrize("evolution_time", [-50, -1.783, 0.36])
 def test_controlled_plaquette_trotter_step(evolution_time):
+    """Test control functionality for plaquette Trotter step."""
+    enumeration = [np.array([[0, 3], [1, 2]])]  # a test enumeration yeilding one plaquette
+    coefficient = 0.367
+    plaq_data = PlaquetteTermData("pink", enumeration, evolution_time, coefficient)
+
     # Control qubit is set to 0, nothing applied
-    qc = QPU()
-    qc.reset(5)
+    qc = QPU(num_qubits=5)
 
     qubs = Qubits(4, "qubs", qc)
     control = Qubits(1, "control", qc)
@@ -286,10 +289,6 @@ def test_controlled_plaquette_trotter_step(evolution_time):
     control.write(0)
     initial = qc.pull_state()
 
-    enumeration = [np.array([[0, 3], [1, 2]])]  # a test enumeration yeilding one plaquette
-    coefficient = 0.367
-    plaq_data = PlaquetteTermData("pink", enumeration, evolution_time, coefficient)
-
     plaquette_trotter_step = PlaquetteTrotterStep()
     plaquette_trotter_step.compute(qubs, plaq_data, ctrl=control)
 
@@ -298,8 +297,7 @@ def test_controlled_plaquette_trotter_step(evolution_time):
     assert np.allclose(final_state, initial)
 
     # Control qubit is set to 1, unitary applied
-    qc = QPU()
-    qc.reset(5)
+    qc = QPU(num_qubits=5)
 
     qubs = Qubits(4, "qubs", qc)
     control = Qubits(1, "control", qc)
@@ -324,6 +322,7 @@ def test_controlled_plaquette_trotter_step(evolution_time):
 def test_plaquette_trotter_step_has_intended_action_on_two_spin_plaquettes(
     evolution_time, coefficient, hwp_qbk, use_ppr
 ):
+    """Test that the plaquette Trotter step has the intended action on two spin plaquettes."""
     if hwp_qbk:
         hw_qbk = ComputeHammingWeightNaive(adder=NaiveAdd())
         hwp_qbk = PowerOfTwoBatchedHammingWeightPhasing(hw_qbk)
@@ -358,11 +357,11 @@ def test_plaquette_trotter_step_has_intended_action_on_two_spin_plaquettes(
 
     time_evolution = reverse_numpy_op(expm(1j * evolution_time * plaquette_hamiltonian))
 
-    qc = QPU()
     sys_qubits = 8
     hw_qubits = 9 if hwp_qbk else 0
     n_qubits = sys_qubits + hw_qubits
-    qc.reset(n_qubits)
+
+    qc = QPU(num_qubits=n_qubits)
 
     qubs = Qubits(sys_qubits, "qubs", qc)
 
@@ -409,6 +408,7 @@ def test_plaquette_trotter_step_has_intended_action_on_two_spin_plaquettes(
 @pytest.mark.parametrize("coefficient", [1, 0.36])
 @pytest.mark.parametrize("hwp_qbk", [None, PowerOfTwoBatchedHammingWeightPhasing])
 def test_plaquette_trotter_step_has_intended_action_with_nonlocal_fermionic_swap(evolution_time, coefficient, hwp_qbk):
+    """Test that the plaquette Trotter step has the intended action with nonlocal fermionic swaps."""
     if hwp_qbk:
         hw_qbk = ComputeHammingWeightNaive(adder=NaiveAdd())
         hwp_qbk = PowerOfTwoBatchedHammingWeightPhasing(hw_qbk)
@@ -432,11 +432,10 @@ def test_plaquette_trotter_step_has_intended_action_with_nonlocal_fermionic_swap
 
     time_evolution = reverse_numpy_op(expm(1j * evolution_time * (plaquette_hamiltonian)))
 
-    qc = QPU()
     sys_qubits = 6
     hw_qubits = 7 if hwp_qbk else 0
     n_qubits = sys_qubits + hw_qubits
-    qc.reset(n_qubits)
+    qc = QPU(num_qubits=n_qubits)
 
     qubs = Qubits(sys_qubits, "qubs", qc)
 
@@ -541,7 +540,7 @@ def setup_plaquette_hams_for_2x4_lattice():
 def test_plaquette_trotter_steps_have_intended_action_on_pink_and_gold_plaquettes_for_2_x_4_lattice(
     evolution_time, coefficient
 ):
-
+    """Test that the plaquette Trotter steps have the intended action on pink and gold plaquettes for 2x4 lattice."""
     (pink_plaquette_hamiltonian, gold_plaquette_hamiltonian) = setup_plaquette_hams_for_2x4_lattice()
 
     # Test pink plaquette action
@@ -549,8 +548,7 @@ def test_plaquette_trotter_steps_have_intended_action_on_pink_and_gold_plaquette
         expm(1j * evolution_time * coefficient * pauli_sum_to_numpy(pink_plaquette_hamiltonian))
     )
 
-    qc = QPU()
-    qc.reset(8)
+    qc = QPU(num_qubits=8)
 
     qubs = Qubits(8, "qubs", qc)
 
@@ -572,8 +570,7 @@ def test_plaquette_trotter_steps_have_intended_action_on_pink_and_gold_plaquette
         expm(1j * evolution_time * coefficient * pauli_sum_to_numpy(gold_plaquette_hamiltonian))
     )
 
-    qc = QPU()
-    qc.reset(8)
+    qc = QPU(num_qubits=8)
 
     qubs = Qubits(8, "qubs", qc)
 
@@ -594,9 +591,8 @@ def test_plaquette_trotter_steps_have_intended_action_on_pink_and_gold_plaquette
 @pytest.mark.parametrize("evolution_time", [-50, -1.783, 0.4])
 @pytest.mark.parametrize("coefficient", [1, 0.46])
 def test_plaquette_trotter_steps_are_invertible(evolution_time, coefficient):
-    # Also for 2 x 4 lattice with the same enumeration as test_plaquette_trotter_steps_have_intended_action_on_pink_and_gold_plaquettes_for_2_x_4_lattice
-    qc = QPU()
-    qc.reset(8)
+    """Test that the plaquette Trotter steps are invertible."""
+    qc = QPU(num_qubits=8)
 
     qubs = Qubits(8, "qubs", qc)
 
@@ -623,14 +619,14 @@ def test_plaquette_trotter_steps_are_invertible(evolution_time, coefficient):
 @pytest.mark.parametrize("evolution_time", [50, 0.783])
 @pytest.mark.parametrize("coefficient", [1, 0.81])
 def test_sequential_plaquette_trotter_steps_build_up(evolution_time, coefficient):
+    """Test that sequential plaquette Trotter steps compose to the intended action."""
     (_, gold_plaquette_hamiltonian) = setup_plaquette_hams_for_2x4_lattice()
 
     gold_time_evolution = reverse_numpy_op(
         expm(1j * 2 * evolution_time * (coefficient * pauli_sum_to_numpy(gold_plaquette_hamiltonian)))
     )
 
-    qc = QPU()
-    qc.reset(8)
+    qc = QPU(num_qubits=8)
 
     qubs = Qubits(8, "qubs", qc)
 
@@ -673,11 +669,10 @@ def test_plaquette_trotter_steps_of_pink_and_gold_reproduce_kinetic_evolution_fo
 
     kinetic_time_evolution = reverse_numpy_op(expm(1j * evolution_time * (pauli_sum_to_numpy(kinetic_hamiltonian))))
 
-    qc = QPU()
     sys_qubits = 8
     hw_qubits = 9 if hwp_qbk else 0
     n_qubits = sys_qubits + hw_qubits
-    qc.reset(n_qubits)
+    qc = QPU(num_qubits=n_qubits)
 
     qubs = Qubits(sys_qubits, "qubs", qc)
 
@@ -730,8 +725,7 @@ def test_plaquette_step_uncompute_with_hamming_weight_phasing():
     """
     evolution_time = -50
 
-    qc = QPU()
-    qc.reset(10)
+    qc = QPU(num_qubits=10)
 
     qubs = Qubits(4, "qubs", qc)
 
@@ -782,16 +776,15 @@ def setup_plaquette_circuits_for_hwp_wf_testing(n_batches, init_state):
 
     # Set up QPU instance:
     qc = QPU(
+        num_qubits=total_num_qubits,
         pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>", ">>witness>>"],
     )
-    qc.reset(total_num_qubits)
 
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
     qc.push_state(init_state)
 
     evolution_time = np.pi
-    potential_coefficient = 8
 
     if n_batches:
         hamming_weight_qubrick = ComputeHammingWeightGroupOfThrees()
@@ -827,8 +820,9 @@ def test_2x2_plaquette_term_with_batched_hwp():
     lattice_size = 2
     number_spin_sites = 2 * (lattice_size * lattice_size)
     total_num_qubits = number_spin_sites * 2 + 4
-    qc = QPU(pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>", ">>witness>>"])
-    qc.reset(total_num_qubits)
+    qc = QPU(
+        num_qubits=total_num_qubits, pre_filters=[">>clean-ladder-filter>>", ">>single-control-filter>>", ">>witness>>"]
+    )
     psi_reg = Qubits(number_spin_sites, "psi", qc)
     qc.set_random()
     qc.write(0, ~(psi_reg).mask())
@@ -847,8 +841,11 @@ def test_2x2_plaquette_term_with_batched_hwp():
 
 
 def test_error_when_color_incorrect():
-    # When generating the plaquette qubrick the color type must be pink or gold. If it differs from this an error should be raise.
-    # This tests this check for a valid enumeration.
+    """Test that an error is raised when the color type is incorrect.
+
+    When generating the plaquette qubrick the color type must be pink or gold.
+    If it differs from this an error should be raised.
+    """
     enumeration = [np.array([[0, 3], [1, 2]])]
     evolution_time = 1
     kinetic_coefficient = 1

@@ -1,17 +1,14 @@
 """Tests for the two mode FFFT qubrick."""
 
 import numpy as np
-import psiqdk.workbench.opcodes as opc
 from psiqdk.workbench import QPU, Qubits
-from psiqdk.workbench.experimental.active_volume_estimation import op_av_lookup_table
-from psiqdk.workbench.ops import QPU_op
 from psiqdk.workbench.utility_filters import UnitaryMatrixFilter
 from psiqdk.workbench.utils.numpy_utils import fidelity, reverse_numpy_op
 
 from psiq_fh.trotterization.hopping import TwoModeFFFTViaControlledHad, TwoModeFFFTViaPPRs
 
 
-def compare_arrays_global_phase(A, B, rtol=1e-05, atol=1e-08):
+def compare_arrays_up_to_global_phase(A, B, rtol=1e-05, atol=1e-08):
     """Compare two 2D numpy arrays up to a global phase factor.
 
     Args:
@@ -37,8 +34,7 @@ def compare_arrays_global_phase(A, B, rtol=1e-05, atol=1e-08):
 
 
 def test_two_mode_ffft_has_desired_action_on_two_qubits():
-    qc = QPU()
-    qc.reset(2)
+    qc = QPU(num_qubits=2)
 
     one = Qubits(1, "1", qc)
     two = Qubits(1, "2", qc)
@@ -67,8 +63,7 @@ def test_two_mode_ffft_has_desired_action_on_two_qubits():
     UNITARY = UnitaryMatrixFilter()
 
     unitary_filter = UNITARY
-    qc = QPU(pre_filters=[">>witness>>"], filters=[unitary_filter, ">>buffer>>"])
-    qc.reset(2)
+    qc = QPU(num_qubits=2, pre_filters=[">>witness>>"], filters=[unitary_filter, ">>buffer>>"])
     UNITARY.qc = qc
     UNITARY.clear()
 
@@ -83,9 +78,8 @@ def test_two_mode_ffft_has_desired_action_on_two_qubits():
     assert np.allclose(gate, expected_matrix)
 
 
-def test_two_mode_ffft_v3_has_desired_action_on_two_qubits():
-    qc = QPU()
-    qc.reset(2)
+def test_two_mode_ffft_via_pprs_has_desired_action_on_two_qubits():
+    qc = QPU(num_qubits=2)
 
     one = Qubits(1, "1", qc)
     two = Qubits(1, "2", qc)
@@ -114,8 +108,7 @@ def test_two_mode_ffft_v3_has_desired_action_on_two_qubits():
     UNITARY = UnitaryMatrixFilter()
 
     unitary_filter = UNITARY
-    qc = QPU(pre_filters=[">>witness>>"], filters=[unitary_filter, ">>buffer>>"])
-    qc.reset(2)
+    qc = QPU(num_qubits=2, pre_filters=[">>witness>>"], filters=[unitary_filter, ">>buffer>>"])
     UNITARY.qc = qc
     UNITARY.clear()
 
@@ -127,15 +120,14 @@ def test_two_mode_ffft_v3_has_desired_action_on_two_qubits():
 
     gate = reverse_numpy_op(UNITARY.get())
 
-    assert compare_arrays_global_phase(gate, expected_matrix, rtol=1e-15, atol=1e-15)
+    assert compare_arrays_up_to_global_phase(gate, expected_matrix, rtol=1e-15, atol=1e-15)
 
 
 def test_two_mode_ffft_has_desired_action_on_two_qubits_in_larger_hilbert_space():
     """Test action of two-mode FFFT operator on a random initial state of a pair of qubits
     in a larger register.
     """
-    qc = QPU()
-    qc.reset(4)
+    qc = QPU(num_qubits=4)
 
     qubs = Qubits(4, "qubs", qc)
 
@@ -166,12 +158,11 @@ def test_two_mode_ffft_has_desired_action_on_two_qubits_in_larger_hilbert_space(
     assert np.allclose(final_state, expected_matrix @ initial)
 
 
-def test_two_mode_ffft_v3_has_desired_action_on_two_qubits_in_larger_hilbert_space():
+def test_two_mode_ffft_via_pprs_has_desired_action_on_two_qubits_in_larger_hilbert_space():
     """Test action of two-mode FFFT operator (decomposed into PPRs) on a random initial state of
     a pair of qubits in a larger register.
     """
-    qc = QPU()
-    qc.reset(4)
+    qc = QPU(num_qubits=4)
 
     qubs = Qubits(4, "qubs", qc)
 
@@ -204,8 +195,7 @@ def test_two_mode_ffft_v3_has_desired_action_on_two_qubits_in_larger_hilbert_spa
 
 
 def test_two_mode_ffft_does_nothing_when_control_is_off():
-    qc = QPU()
-    qc.reset(3)
+    qc = QPU(num_qubits=3)
 
     one = Qubits(1, "1", qc)
     two = Qubits(1, "2", qc)
@@ -224,9 +214,8 @@ def test_two_mode_ffft_does_nothing_when_control_is_off():
     assert np.allclose(final_state, initial)
 
 
-def test_two_mode_ffft_v3_does_nothing_when_control_is_off():
-    qc = QPU()
-    qc.reset(3)
+def test_two_mode_ffft_via_pprs_does_nothing_when_control_is_off():
+    qc = QPU(num_qubits=3)
 
     one = Qubits(1, "1", qc)
     two = Qubits(1, "2", qc)

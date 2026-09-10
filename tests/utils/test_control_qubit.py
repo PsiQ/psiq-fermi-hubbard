@@ -117,8 +117,6 @@ def test_defer_rotation_merging_phase_and_rz(is_directional):
 
     wf_merging = qc.pull_state()
 
-    qc.draw()
-
     # (2) Don't merge
     qc = QPU(num_qubits=3)
 
@@ -140,8 +138,6 @@ def test_defer_rotation_merging_phase_and_rz(is_directional):
     ctrl.resolve_rotations(merge_phase_and_rz=False)
 
     wf_no_merging = qc.pull_state()
-
-    qc.draw()
 
     # Equal up to global phase
     assert np.isclose(fidelity(wf_merging, wf_no_merging), 1)
@@ -175,20 +171,16 @@ def test_skip_rotation(op_type, is_directional):
             ctrl.reflect(rot_angle)
 
     tgts.x(ctrl)
-    tgts[0].phase(35)  # try to add another rotation but not acting on control
     ctrl.resolve_rotations()
 
     if op_type == "phase":
-        filtered_op = qc.witness.filter(
-            name=lambda x: x == "qc.phase", theta=lambda x: np.isclose(x, np.sum(rot_angles))
-        )
+        filtered_op = qc.witness.filter(name=lambda x: x == "qc.phase")
     elif op_type == "rz":
-        filtered_op = qc.witness.filter(name=lambda x: x == "qc.rz", theta=lambda x: np.isclose(x, np.sum(rot_angles)))
+        filtered_op = qc.witness.filter(name=lambda x: x == "qc.rz")
+
     elif op_type == "reflect_z":
         # On a single qubit, reflect on z-axis is just phase
-        filtered_op = qc.witness.filter(
-            name=lambda x: x == "qc.phase", theta=lambda x: np.isclose(x, np.sum(rot_angles))
-        )
+        filtered_op = qc.witness.filter(name=lambda x: x == "qc.phase")
 
-    # Check that merged into one rotation op
+    # Check that rotations were skipped
     assert filtered_op.count() == 0

@@ -63,7 +63,8 @@ def test_psiq_and_openfermion_fh_hamiltonian_constructions_for_2x2():
     assert np.isclose(fidelity(gstate_psiq, gstate_of), 1)
 
 
-def test_openfermion_fh_potential_terms():
+def test_alt_enumerations_return_same_energy():
+    """Test that the alternative enumerations return the same system energy."""
     potential_coefficient = 8
     particle_hole_symmetry = True
 

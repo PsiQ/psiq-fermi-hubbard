@@ -23,10 +23,10 @@ def test_plaquette_qre(
 
     Note:
         - See Appendix E of 2012.09238, Eq. E1
-        - They claim you can merge the first and last term but not sure if you
-          can do that so per step, we assume you make 2 calls to the interaction
-          term. So instead of 4 L^2 rotations, we have 5 L^2 rotations total,
-          where 2 L^2 comes from interaction.
+        - While in the ref above it is claimed that you can merge the first and last term,
+        it is unclear that you can do that so per step.
+        - We assume you make 2 calls to the interaction term. So instead of 4 L^2 rotations,
+        we have 5 L^2 rotations total, where 2 L^2 comes from interaction.
     """
     # set-up total number of qubits:
     number_spin_sites = 2 * (lattice_size * lattice_size)
@@ -35,8 +35,7 @@ def test_plaquette_qre(
     potential_coefficient = 8
 
     # Set up QPU instance:
-    qc = QPU(filters=[">>witness>>", ">>buffer>>"])
-    qc.reset(total_num_qubits)
+    qc = QPU(num_qubits=total_num_qubits, filters=[">>witness>>", ">>buffer>>"])
 
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
@@ -44,9 +43,9 @@ def test_plaquette_qre(
     fh_data = FermiHubbardData(
         x_dim=lattice_size,
         y_dim=lattice_size,
-        total_evolution_time=0.4,  # time cannot be np.pi as then rotations are trivial
+        total_evolution_time=0.4,  # Note: time cannot be np.pi as then rotations are trivial
         n_trotter_steps=1,
-        enumeration=None,  # default
+        enumeration=None,
         particle_hole_symmetry=particle_hole_symmetry,
         t=1,
         u=potential_coefficient,
@@ -81,10 +80,14 @@ def test_plaquette_qre_with_hwp(
 
     number_of_trotter_steps = 1
 
-    potential_coefficient = 8.5  # If potential coefficient is 8 then interaction angles and plaquette angles only differ by factors of two and so can share some of the catalyst state - this makes n_rots_cat incorrect
+    # Note: if potential coefficient is 8, the interaction angles and plaquette angles only
+    # differ by factors of two and so they can share some of the catalyst state
+    # which makes n_rots_cat incorrect
+    potential_coefficient = 8.5
 
     # Set up QPU instance:
     qc = QPU(
+        num_qubits=total_num_qubits,
         pre_filters=[
             ">>clean-ladder-filter>>",
             ">>single-control-filter>>",
@@ -92,7 +95,6 @@ def test_plaquette_qre_with_hwp(
         ],
         filters=[">>buffer>>"],
     )
-    qc.reset(total_num_qubits)
 
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
@@ -101,14 +103,13 @@ def test_plaquette_qre_with_hwp(
         hamming_weight_qubrick,
     )
 
-    # instantiate Plaquette Trotterization Qubrick
-
+    # Instantiate Plaquette Trotterization Qubrick
     fh_data = FermiHubbardData(
         x_dim=lattice_size,
         y_dim=lattice_size,
-        total_evolution_time=0.4,  # time cannot be np.pi as then rotations are trivial,
+        total_evolution_time=0.4,  # Note:time cannot be np.pi as then rotations are trivial,
         n_trotter_steps=number_of_trotter_steps,
-        enumeration=None,  # default
+        enumeration=None,
         particle_hole_symmetry=True,
         t=1,
         u=potential_coefficient,
@@ -123,7 +124,7 @@ def test_plaquette_qre_with_hwp(
     hubbard_unitary.compute(psi_reg, fh_data)
     metrics = resource_estimator(qc).resources(expanded=True)
 
-    # each controlled-Had decomposed into 2 T-gates
+    # Each controlled-Had decomposed into 2 T-gates
     t_count = metrics["t_gates"]
     assert t_count == 12 * lattice_size**2
 

@@ -10,8 +10,7 @@ from psiq_fh.trotterization.fswapping.fermionic_swap import FermionicSwapWithRep
 
 def test_fermionic_swap_has_desired_action():
     """Test that a local/adjacent fermionic swap has the desired action."""
-    qc = QPU()
-    qc.reset(2)
+    qc = QPU(num_qubits=2)
 
     one = Qubits(1, "1", qc)
     two = Qubits(1, "2", qc)
@@ -35,8 +34,7 @@ def test_fermionic_swap_has_desired_action():
 
 def test_fermionic_swap_has_desired_action_on_multiple_pairs():
     """Test a set of parallel fermionic swaps has the desired action."""
-    qc = QPU()
-    qc.reset(8)
+    qc = QPU(num_qubits=8)
 
     qubs = Qubits(8, "qubs", qc)
 
@@ -62,8 +60,7 @@ def test_fermionic_swap_has_desired_action_on_multiple_pairs():
 
 def test_fermionic_swap_is_invertible():
     """Test that a fermionic swap is invertible."""
-    qc = QPU()
-    qc.reset(8)
+    qc = QPU(num_qubits=8)
 
     qubs = Qubits(8, "qubs", qc)
 
@@ -85,8 +82,7 @@ def test_fermionic_swap_is_invertible():
 
 def test_fermionic_swap_has_desired_action_in_larger_hilbert_space():
     """Test that a fermionic swap has the desired action in a larger Hilbert space."""
-    qc = QPU()
-    qc.reset(4)
+    qc = QPU(num_qubits=4)
 
     qubs = Qubits(4, "qubs", qc)
 
@@ -110,8 +106,7 @@ def test_fermionic_swap_has_desired_action_in_larger_hilbert_space():
 
 def test_fermionic_swap_does_nothing_when_control_is_off():
     """Test that a fermionic swap does nothing when the control qubit is off."""
-    qc = QPU()
-    qc.reset(3)
+    qc = QPU(num_qubits=3)
 
     one = Qubits(1, "1", qc)
     two = Qubits(1, "2", qc)
@@ -134,8 +129,7 @@ def test_fermionic_swap_does_nothing_when_control_is_off():
 
 def test_nonlocal_fermionic_swap_is_self_inverse():
     """Test that a non-local fermionic swap returns to the initial state when computed twice."""
-    qc = QPU()
-    qc.reset(4)
+    qc = QPU(num_qubits=4)
 
     qubs = Qubits(4, "qubs", qc)
 
@@ -180,8 +174,8 @@ def _simulate_expected_basis_vector(initial_state: int, num_qubits: int, a: int,
 @pytest.mark.parametrize("swap_val_1, swap_val_2", [(0, 3), (1, 3), (0, 2)])
 def test_nonlocal_fswap_for_basis_vectors(initial_state, num_qubits, swap_val_1, swap_val_2):
     """Check the exact action of a single non-local fSWAP on computational-basis vectors."""
-    qc = QPU()
-    qc.reset(num_qubits)
+    qc = QPU(num_qubits=num_qubits)
+
     qubs = Qubits(num_qubits, "qubs", qc)
 
     if initial_state != 0:
@@ -196,18 +190,13 @@ def test_nonlocal_fswap_for_basis_vectors(initial_state, num_qubits, swap_val_1,
     assert np.allclose(wf, expected)
 
 
-@pytest.mark.parametrize("n", [1, 4, 7, 8])
-def test_nonlocal_fswap_av_optimized(n):
-    """Test action of optimized non-local fermionic swap has the same action as unoptimized version.
-
-    Args:
-        n (int): Size of fSWAP.
-    """
+@pytest.mark.parametrize("num_qubits", [1, 4, 7, 8])
+def test_nonlocal_fswap_av_optimized(num_qubits):
+    """Test action of optimized non-local fermionic swap has the same action as unoptimized version."""
     # Generate a fSWAP block
-    qc = QPU()
-    qc.reset(2 + n)
+    qc = QPU(num_qubits=num_qubits + 2)
 
-    tgt = Qubits(n + 2, "tgt", qc)
+    tgt = Qubits(num_qubits + 2, "tgt", qc)
 
     qc.set_random()
     initial_state = qc.pull_state()
@@ -218,10 +207,9 @@ def test_nonlocal_fswap_av_optimized(n):
     wf_ref = qc.pull_state()
 
     # AV-optimized fSWAP qubrick
-    qc = QPU()
-    qc.reset(2 + n)
+    qc = QPU(num_qubits=num_qubits + 2)
 
-    tgt = Qubits(n + 2, "tgt", qc)
+    tgt = Qubits(num_qubits + 2, "tgt", qc)
 
     qc.push_state(initial_state)
 
@@ -233,17 +221,16 @@ def test_nonlocal_fswap_av_optimized(n):
     assert np.allclose(wf_trial, wf_ref)
 
 
-@pytest.mark.parametrize("n", [1, 2, 3])
-def test_nonlocal_fswap_av_optimized_unitary(n):
-    """Verify decompositions of an fSWAP block that
-    are cheap in AV via unitary matrix filter.
+@pytest.mark.parametrize("num_qubits", [1, 2, 3])
+def test_nonlocal_fswap_av_optimized_unitary(num_qubits):
+    """Verify decompositions of fSWAP blocks that
+    are optimizied for AV via unitary matrix filter.
     """
     # Generate a fSWAP block
     unitary = UnitaryMatrixFilter()
-    qc = QPU(filters=[unitary])
-    qc.reset(2 + n)
+    qc = QPU(num_qubits=num_qubits + 2, filters=[unitary])
 
-    tgt = Qubits(n + 2, "tgt", qc)
+    tgt = Qubits(num_qubits + 2, "tgt", qc)
 
     fswap = FermionicSwapWithReplace()
     fswap.compute(tgt, [tgt[0]], [tgt[-1]])
@@ -252,10 +239,9 @@ def test_nonlocal_fswap_av_optimized_unitary(n):
 
     # Test decomposition
     unitary = UnitaryMatrixFilter()
-    qc = QPU(filters=[unitary])
-    qc.reset(2 + n)
+    qc = QPU(num_qubits=num_qubits + 2, filters=[unitary])
 
-    tgt = Qubits(n + 2, "tgt", qc)
+    tgt = Qubits(num_qubits + 2, "tgt", qc)
 
     fswap_opt = FermionicSwapWithReplaceAVOpt()
     fswap_opt.compute(tgt, [tgt[0]], [tgt[-1]])

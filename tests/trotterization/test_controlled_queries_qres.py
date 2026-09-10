@@ -51,8 +51,7 @@ def test_closed_control_trotterized_evolution(
     fermionic_swap_qubrick = FermionicSwapWithReplaceAVOpt(use_black_box=False)
     two_mode_ffft_qubrick = TwoModeFFFTViaPPRs(use_black_box=False)
 
-    qc = QPU(filters=[">>witness>>", ">>buffer>>"])
-    qc.reset(total_num_qubits)
+    qc = QPU(num_qubits=total_num_qubits, filters=[">>witness>>", ">>buffer>>"])
     psi_reg = Qubits(number_spin_sites, "psi", qc)
     ctrl = Qubits(1, "ctrl", qc)
 
@@ -67,7 +66,7 @@ def test_closed_control_trotterized_evolution(
         u=potential_coefficient,
     )
 
-    # call directional hwp
+    # Call directional hwp
     hamming_weight_qubrick = ComputeHammingWeightGroupOfThrees()
     hwp_qbk = PowerOfTwoBatchedDirectionalHammingWeightPhasing(
         hamming_weight_qubrick,
@@ -223,8 +222,7 @@ def test_directionally_controlled_trotterized_evolution(
     fermionic_swap_qubrick = FermionicSwapWithReplaceAVOpt(use_black_box=False)
     two_mode_ffft_qubrick = TwoModeFFFTViaPPRs(use_black_box=False)
 
-    qc = QPU(filters=[">>witness>>", ">>buffer>>"])
-    qc.reset(total_num_qubits)
+    qc = QPU(num_qubits=total_num_qubits, filters=[">>witness>>", ">>buffer>>"])
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
     ctrl = DirectionalControlQubit(1, "ctrl", qc, defer_rotations=True)
@@ -240,7 +238,7 @@ def test_directionally_controlled_trotterized_evolution(
         u=potential_coefficient,
     )
 
-    # call directional hwp
+    # Call directional hwp
     hamming_weight_qubrick = ComputeHammingWeightGroupOfThrees()
     hwp_qbk = PowerOfTwoBatchedDirectionalHammingWeightPhasing(
         hamming_weight_qubrick,
@@ -379,8 +377,7 @@ def _setup_directionally_controlled_trotterized_evolution(
     fermionic_swap_qubrick = FermionicSwapWithReplaceAVOpt(use_black_box=False)
     two_mode_ffft_qubrick = TwoModeFFFTViaPPRs(use_black_box=False)
 
-    qc = QPU(filters=[">>witness>>", ">>buffer>>"])
-    qc.reset(total_num_qubits)
+    qc = QPU(num_qubits=total_num_qubits, filters=[">>witness>>", ">>buffer>>"])
     psi_reg = Qubits(number_spin_sites, "psi", qc)
 
     ctrl = DirectionalControlQubit(1, "ctrl", qc, defer_rotations=True)
@@ -396,7 +393,7 @@ def _setup_directionally_controlled_trotterized_evolution(
         u=potential_coefficient,
     )
 
-    # call directional hwp
+    # Call directional hwp
     hamming_weight_qubrick = ComputeHammingWeightGroupOfThrees()
     hwp_qbk = PowerOfTwoBatchedDirectionalHammingWeightPhasing(
         hamming_weight_qubrick,
@@ -522,8 +519,7 @@ def test_jumpback_qres_for_directional_qpe(
     fermionic_swap_qubrick = FermionicSwapWithReplaceAVOpt(use_black_box=False)
     two_mode_ffft_qubrick = TwoModeFFFTViaPPRs(use_black_box=False)
 
-    qc = QPU(filters=[">>witness>>", ">>buffer>>"])
-    qc.reset(total_num_qubits)
+    qc = QPU(num_qubits=total_num_qubits, filters=[">>witness>>", ">>buffer>>"])
 
     phase_reg = Qubits(n_phase_qubits, "phase_reg", qc)
 
@@ -540,7 +536,7 @@ def test_jumpback_qres_for_directional_qpe(
         u=potential_coefficient,
     )
 
-    # call directional hwp
+    # Call directional hwp
     hamming_weight_qubrick = ComputeHammingWeightGroupOfThrees()
     hwp_qbk = PowerOfTwoBatchedDirectionalHammingWeightPhasing(
         hamming_weight_qubrick,
