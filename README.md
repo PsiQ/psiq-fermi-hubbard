@@ -36,14 +36,14 @@ To reproduce the paper's numbers, use the exact environment they were produced i
 than the loose bounds in `pyproject.toml`. This is natively done in `uv` via the `uv.lock` file, but we have also provided a `reproduction_requirements.txt` file.
 
 ```sh
-uv sync --frozen
+uv sync --frozen --group jupyter
 
 # python / pip equivalent
 # python -m venv .venv && source .venv/bin/activate
-# pip install -r reproduction_requirements.txt && pip install -e . --no-deps
+# pip install -r reproduction_requirements.txt && pip install -e . --no-deps --group jupyter
 ```
 
-Note that we only guarantee `uv sync --frozen` as a way to reproduce the numbers in the paper: the pinned version of `psiqdk` fixes the active-volume lookup table used. As `psiqdk` is in active development future versions may produce different values.
+Note that we only guarantee `uv sync --frozen` as a way to reproduce the numbers in the paper: the pinned version of `psiqdk` fixes the active-volume lookup table used. As `psiqdk` is in active development future versions may produce different values. The `jupyter` group is required to run the notebooks.
 
 ## Reproducing the results
 
