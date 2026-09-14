@@ -91,7 +91,7 @@ If you have used some of this software in your work, please cite this repository
   author = {Apel, Harriet and Sim, Sukin},
   title = {{PsiQuantum Fermi Hubbard: Qubricks for trotterized Fermi Hubbard
             in active volume architectures}},
-  url = {TODO},
+  url = {https://github.com/PsiQ/psiq-fermi-hubbard.git},
   year = {2026}
 }
 ```
