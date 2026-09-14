@@ -43,6 +43,14 @@ test:
     - uv sync --frozen
   script:
     - uv run --no-sync pytest
+  
+paper_fidelity:
+  extends: .python-job
+  stage: ci
+  before_script:
+    - uv sync --frozen
+  script:
+    - uv run --no-sync pytest -m paper_fidelity
 
 notebooks:
   extends: .python-job

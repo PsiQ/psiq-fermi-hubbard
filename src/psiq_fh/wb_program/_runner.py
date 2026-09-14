@@ -33,7 +33,7 @@ PLOT_PATHWAY = project_root() / "examples" / "trotter" / "paper_data_and_plots"
 """Absolute pathway to the trotter plotting folder."""
 
 
-class FermiHubbardQRERunner:
+class FermiHubbardQreRunner:
     """Runner class for the Fermi-Hubbard Trotter Workbench program for QREs."""
 
     FH_POTENTIAL: float = 8

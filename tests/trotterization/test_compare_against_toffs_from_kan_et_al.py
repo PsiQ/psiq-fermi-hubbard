@@ -3,7 +3,7 @@
 import numpy as np
 from psiq_fh.wb_program.utils import compute_T_rotation_synthesis_mixed_fallback
 
-from psiq_fh.wb_program import FermiHubbardQRERunner
+from psiq_fh.wb_program import FermiHubbardQreRunner
 from psiq_fh.wb_program.utils import extract_all
 import pytest
 
@@ -51,7 +51,7 @@ def test_compare_against_kan_et_al(lattice_sizes):
         lattice_sizes: Lattice sizes.
     """
     # Instantiate baseline WB circuit and retrieve metrics data
-    runner = FermiHubbardQRERunner(lattice_sizes=lattice_sizes, variant="baseline", num_batches=1)
+    runner = FermiHubbardQreRunner(lattice_sizes=lattice_sizes, variant="baseline", num_batches=1)
     metrics_data = runner.retrieve()
 
     t_gates_wb = extract_all(metrics_data, "t_gates")

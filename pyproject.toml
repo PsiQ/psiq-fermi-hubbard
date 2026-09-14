@@ -76,5 +76,6 @@ select = ["D"]
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.pytest.ini_options]
+[tool.pytest]
 testpaths = ["tests"]
+markers=["paper_fidelity: used to confirm the metrics reported in the paper have not changed"]
