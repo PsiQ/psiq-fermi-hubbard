@@ -264,7 +264,7 @@ def test_generate_plaquette_enumeration_indices_for_even_odd_enum_gold_plaq(latt
     assert sorted(gold_indices) == sorted(expected_indices)
 
 
-def are_neighbours(plaq, enumeration):
+def are_neighbors(plaq, enumeration):
     """Check if all values in the 2x2 plaquette come from a valid sub-block of the given enumeration."""
     for i in range(enumeration.shape[0] - 1):
         for j in range(enumeration.shape[1] - 1):
@@ -296,7 +296,7 @@ def test_get_plaqs_for_even_odd_enumeration(lattice_size, snaked):
     down_plaqs = plaqs[half:]
 
     for p in up_plaqs:
-        assert are_neighbours(p, up), f"Up plaquette {p} is not a valid 2x2 block in up enumeration"
+        assert are_neighbors(p, up), f"Up plaquette {p} is not a valid 2x2 block in up enumeration"
 
     for p in down_plaqs:
-        assert are_neighbours(p, down), f"Down plaquette {p} is not a valid 2x2 block in down enumeration"
+        assert are_neighbors(p, down), f"Down plaquette {p} is not a valid 2x2 block in down enumeration"

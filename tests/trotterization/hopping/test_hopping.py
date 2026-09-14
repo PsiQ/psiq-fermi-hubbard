@@ -1,4 +1,4 @@
-"""Tests for the hopping term in the Fermi-Hubbard Trotterizaton circuit."""
+"""Tests for the hopping term in the Fermi-Hubbard Trotterization circuit."""
 
 import numpy as np
 import pytest
@@ -174,7 +174,7 @@ def is_diagonal_matrix(arr, threshold=1e-15):
 @pytest.mark.parametrize("evolution_time", [-50, -1.783, 0, 0.154])
 @pytest.mark.parametrize("coefficient", [1, 0.826, 6])
 def test_unitaries_for_plaquette_time_evolution(evolution_time, coefficient):
-    """Check that all three unitaries (fermionic, qubit, WB) match up."""
+    """Check that all three unitaries (fermionic, qubit, Workbench) match up."""
     time_evolution_fham = compute_unitary_of_plaq_time_evolution_from_fermionic_ham(evolution_time, coefficient)
     time_evolution_qham = compute_unitary_of_plaq_time_evolution_from_qubit_ham(evolution_time, coefficient)
     assert np.allclose(time_evolution_fham, time_evolution_qham)

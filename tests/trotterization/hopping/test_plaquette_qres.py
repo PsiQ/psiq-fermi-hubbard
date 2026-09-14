@@ -19,7 +19,7 @@ def test_plaquette_qre(lattice_size, plaquette_color):
     Note:
         - See Appendix E of 2012.09238
         - Each plaquette will use L^2 rotations (without HWP)
-          and 4L^2 T-gates (from cHads). See Ref above.
+          and 4L^2 T-gates (from controlled Hadamards). See Ref above.
     """
     # set-up total number of qubits:
     number_spin_sites = 2 * (lattice_size * lattice_size)
@@ -44,7 +44,7 @@ def test_plaquette_qre(lattice_size, plaquette_color):
 
     assert metrics["rotation_count"] == lattice_size**2
 
-    # Note: each cHad gate will contribute 2 T-gates
+    # Note: each controlled-Hadamard gate will contribute 2 T-gates
     assert qc.witness.filter("qc.had", condition=1).count() == 2 * lattice_size**2
 
 
@@ -92,7 +92,7 @@ def test_plaquette_qre_with_hwp(lattice_size, plaquette_color):
 
     metrics = resource_estimator(qc).resources(expanded=True)
 
-    # each controlled-Had be decomposed into 2 T-gates
+    # each controlled-Hadamard gate can be decomposed into two T-gates
     t_count = metrics["t_gates"]
     assert t_count == 4 * lattice_size**2
 
@@ -204,5 +204,4 @@ def test_plaquette_term_qres_with_batched_hwp(lattice_size, plaquette_color):
     assert np.isclose(
         nTof,
         metrics_two_batch["aggregated_toff_count"],
-        atol=0.05 * metrics_two_batch["aggregated_toff_count"],
     )

@@ -1,4 +1,4 @@
-# Qubricks for Trotterized Fermi Hubbard in active volume architectures
+# Qubricks for simulating the Fermi-Hubbard model using plaquette Suzuki-Trotter scheme
 
 This repository accompanies the paper "Compiling the 2D Fermi-Hubbard ground-state energy estimation algorithm for active volume architectures" ([arxiv:2609.05316](https://arxiv.org/abs/2609.05316)).
 
@@ -6,7 +6,7 @@ Unlike a number of previous resource estimates that neglect the controlled imple
 
 <img src="./examples/trotter/figures/big_summary_fig.jpeg" width="700" alt="Summary figure">
 
-To compile these circuits and obtain the corresponding resources estimates, custom [qubricks](https://construct.psiquantum.com/docs/psiqdk-workbench/new-tutorials/Qubricks.html) that implement the Trotterized time evolution under the Fermi-Hubbard model Hamiltonian were built and tested. We provide examples on how to generate resource estimation data for prior state-of-the-art as well as the circuit proposed in the paper.
+To compile these circuits and obtain the corresponding resource estimates, custom [qubricks](https://construct.psiquantum.com/docs/psiqdk-workbench/new-tutorials/Qubricks.html) that implement the Trotterized time evolution under the Fermi-Hubbard model Hamiltonian were built and tested. We provide examples on how to generate resource estimation data for prior state-of-the-art as well as the circuit proposed in the paper.
 
 We hope that this code is useful beyond our examples. 
 
@@ -61,9 +61,14 @@ All of the requisite input and outputs come populated, so you are able to run `r
 
 ## Tests
 
-The test suite can be ran via:
+The full test suite can be run via:
 ```bash
 uv run pytest
+```
+
+To run all tests except those to reproduce paper results:
+```bash
+uv run pytest -m "not paper_fidelity"
 ```
 
 ## Citation
@@ -88,9 +93,11 @@ If you have used the results provided here in your work, please cite the paper:
 If you have used some of this software in your work, please cite this repository as follows:
 ```bibtex
 @software{PsiQ_FH,
-  author = {Apel, Harriet and Sim, Sukin},
-  title = {{PsiQuantum Fermi Hubbard: Qubricks for trotterized Fermi Hubbard
-            in active volume architectures}},
+  author = {Harriet Apel and Sukin Sim and Brendan Reid and William Simon and
+            Jessica Lemieux and Joseph Peetz and Gideon Uchehara and Cristian Cortes and
+            Sean Greenaway and Carys Harvey and Eric Johnston and Michal Stechly and Trevor Vincent},
+  title = {{PsiQuantum Fermi-Hubbard: Qubricks for simulating the Fermi-Hubbard model 
+            using plaquette Suzuki-Trotter scheme}},
   url = {https://github.com/PsiQ/psiq-fermi-hubbard.git},
   year = {2026}
 }

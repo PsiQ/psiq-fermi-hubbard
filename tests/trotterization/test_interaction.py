@@ -1,4 +1,4 @@
-"""Tests for the interaction term in the Fermi-Hubbard Trotterizaton circuit in arxiv:2012.09238."""
+"""Tests for the interaction term in the Fermi-Hubbard Trotterization circuit in arxiv:2012.09238."""
 
 import numpy as np
 import pytest
@@ -22,7 +22,7 @@ from psiq_fh.trotterization.interaction import InteractionTrotterStep
 
 @pytest.mark.parametrize("total_evolution_time", [-526, -16.66677, 178.2, 300])
 @pytest.mark.parametrize("potential_coefficient", [-0.23, 0.6])
-def test_interaction_unitary_is_approximately_exp_itzz(total_evolution_time, potential_coefficient):
+def test_interaction_unitary_is_exp_itzz(total_evolution_time, potential_coefficient):
     hamiltonian = reverse_numpy_op(pauli_sum_to_numpy(PauliSum([potential_coefficient, PauliMask(0, 3)])))
     time_evolution = expm(1j * total_evolution_time * hamiltonian)
 
@@ -50,7 +50,7 @@ def test_interaction_unitary_is_approximately_exp_itzz(total_evolution_time, pot
 
 @pytest.mark.parametrize("total_evolution_time", [-526, -16.66677, 178.2, 300])
 @pytest.mark.parametrize("potential_coefficient", [-0.23, 0.2])
-def test_interaction_unitary_is_approximately_exp_itzz_for_multiple_terms(total_evolution_time, potential_coefficient):
+def test_interaction_unitary_is_exp_itzz_for_multiple_terms(total_evolution_time, potential_coefficient):
     hamiltonian = reverse_numpy_op(
         pauli_sum_to_numpy(
             PauliSum(
@@ -114,9 +114,7 @@ def test_interaction_step_does_nothing_when_control_is_zero(total_evolution_time
 @pytest.mark.parametrize("total_evolution_time", [-16.66677])
 @pytest.mark.parametrize("potential_coefficient", [0.6])
 @pytest.mark.parametrize("hw_qbk", [ComputeHammingWeightNaive])
-def test_interaction_is_approximately_exp_itzz_for_multiple_terms_with_hwp(
-    total_evolution_time, potential_coefficient, hw_qbk
-):
+def test_interaction_is_exp_itzz_for_multiple_terms_with_hwp(total_evolution_time, potential_coefficient, hw_qbk):
     """Test interaction term with Hamming weight phasing. Testing the uncontrolled version
        because it's not clear how to pad the time_evolution matrix to account for the control.
 

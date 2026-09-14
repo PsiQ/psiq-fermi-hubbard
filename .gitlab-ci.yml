@@ -42,7 +42,7 @@ test:
   before_script:
     - uv sync --frozen
   script:
-    - uv run --no-sync pytest
+    - uv run --no-sync pytest -m "not paper_fidelity"
   
 paper_fidelity:
   extends: .python-job

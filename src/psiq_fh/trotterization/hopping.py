@@ -1,4 +1,4 @@
-"""Qubricks for implementing the hopping term in the Fermi-Hubbard Trotterizaton circuit in arxiv:2012.09238."""
+"""Qubricks for implementing the hopping term in the Fermi-Hubbard Trotterization circuit in arxiv:2012.09238."""
 
 import numpy as np
 import psiqdk.workbench.opcodes as opc
@@ -39,7 +39,7 @@ class PlaquetteTrotterStep(Qubrick):
 
         Note:
             - Angle will be converted to degrees.
-            - If exptXXYY_qubrick is None, then the associated rotations are implemented directly without hamming weight phasing.
+            - If exptXXYY_qubrick is None, then the associated rotations are implemented directly without Hamming weight phasing.
         """
         super().__init__(**kwargs)
 
@@ -123,7 +123,7 @@ class PlaquetteTrotterStep(Qubrick):
         self.two_mode_ffft_qubrick.uncompute()
         self.fermionic_swap_qubrick.uncompute()
 
-        # Uncompute localising fSWAP network
+        # Uncompute localizing fSWAP network
         self.localize_plaquettes_qubrick.uncompute()
 
 
@@ -137,7 +137,7 @@ class exptXXYY(Qubrick):
         batched_hamming_weight_phasing_qubrick: Qubrick | None = None,
         **kwargs,
     ):
-        """Initialize qubrick implementing exptXXYY.
+        """Initialize qubrick implementing exp(i*τ*X_A X_B)*exp(i*τ*Y_A Y_B).
 
         See equation E13 of https://arxiv.org/abs/2012.09238.
 
@@ -240,7 +240,7 @@ class exptXXYYViaPPR(Qubrick):
     def __init__(
         self, batched_hamming_weight_phasing_qubrick: Qubrick | None = None, use_black_box: bool = False, **kwargs
     ):
-        """Initialize qubrick implementing exptXXYY via PPR decomposition.
+        """Initialize qubrick implementing exp(i*τ*X_A X_B)*exp(i*τ*Y_A Y_B) via PPR decomposition.
 
         Args:
             batched_hamming_weight_phasing_qubrick: Qubrick for computing the hamming weight phasing.
@@ -361,7 +361,7 @@ class TwoModeFFFTViaControlledHad(Qubrick):
 
 
 class TwoModeFFFTViaPPRs(Qubrick):
-    """Implement the two mode FFFT transform via Pauli product rotations (PPRs)."""
+    """Implement the two mode FFFT transform via Pauli Product Rotations (PPRs)."""
 
     def __init__(self, use_black_box: bool = False, **kwargs):
         """Implement a tower of the :math:`F_{i,j}` operators in Fig. 8 of arXiv:1902.10673v4.

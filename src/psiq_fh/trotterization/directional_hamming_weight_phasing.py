@@ -149,7 +149,7 @@ class DirectionalPhasingCircuit(PhasingCircuit):
             turn_on_cnots (bool): If True, applies CNOT fanouts on catalyst qubits when directionally controlling
                 the Hamming weight phasing. This flag is to remove cancellable CNOTs on catalysts when the directional
                 HWP is called multiple times on the same qubits.
-            **kwargs (dict[str, Any]): Additonal Qubrick kwargs
+            **kwargs (dict[str, Any]): Additional Qubrick kwargs
 
         Notes:
             - Qubrick brings a global phase difference from directionally controlling the payload phase rotation,

@@ -95,7 +95,7 @@ def test_fswap_network_ket(lattice_size, plaquette_color, network_qubrick_cls, e
     total_num_qubits = number_spin_sites
 
     # Loop through each plaquette pattern
-    localised_indices = []
+    localized_indices = []
 
     for idx in np.arange(len(plaquette_indices_orig)):
         qc = QPU(num_qubits=total_num_qubits, filters=[">>clifford-qpu>>", ">>buffer>>"])
@@ -109,7 +109,7 @@ def test_fswap_network_ket(lattice_size, plaquette_color, network_qubrick_cls, e
 
         # The four flipped qubits should now be consecutive wires (sum mask == 15)
         consecutive = find_consecutive_powers_sum(target_reg)
-        localised_indices.append(consecutive)
+        localized_indices.append(consecutive)
         assert consecutive is not None, "Did not find four consecutive localized wires."
 
         # Everything else should be |0⟩
@@ -118,7 +118,7 @@ def test_fswap_network_ket(lattice_size, plaquette_color, network_qubrick_cls, e
 
     # Ensure each qubit participates exactly once across all localized plaquettes
     assert np.array_equal(
-        np.sort(np.concatenate(localised_indices)),
+        np.sort(np.concatenate(localized_indices)),
         np.arange(number_spin_sites),
     )
 
@@ -232,7 +232,7 @@ def test_fswap_block_phase(fswap_qbk):
             qubit_indices[i], qubit_indices[j] = qubit_indices[j], qubit_indices[i]
 
             # initial qubit indices
-            initial = np.arange(size_of_fswap_block).tolist()  # LSB to GSB
+            initial = np.arange(size_of_fswap_block).tolist()  # LSB to MSB
 
             # convert initial computational state (integer representation)
             # into a list of 0's and 1's (padded to the qubit count)

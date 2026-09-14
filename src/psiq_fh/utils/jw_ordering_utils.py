@@ -124,7 +124,7 @@ def validate_enumerations(enumerations: list[NDArray]) -> None:
     """Validate enumerations.
 
     Args:
-        enumerations (List[np.darray]): list of enumerations.
+        enumerations (List[np.ndarray]): list of enumerations.
 
     Raises:
         ValueError if any of the below criteria are not met.

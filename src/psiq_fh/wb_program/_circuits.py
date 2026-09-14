@@ -207,7 +207,7 @@ def baseline_computation(
         qc=qc,
     )
 
-    # Repeat queries
+    # Repeat queries, note we do not explicitly implement the control structure for entanglement-free QPE
     if circuit_data.no_queries > 2:
         qc.use_jump_back_iterations = True
         jump_target = qc.jump_back_target(max_num_loops=circuit_data.no_queries - 2)

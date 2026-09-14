@@ -6,7 +6,7 @@ from typing import Literal
 
 import numpy as np
 
-from ..utils.fermi_hubbard_hamiltonian import get_fermi_hubbard_hamiltonian
+from ..utils.fermi_hubbard_hamiltonian import get_expected_norm, get_fermi_hubbard_hamiltonian
 from ..utils.jw_ordering_utils import (
     generate_high_low_enum,
     generate_interaction_enumeration_indices,
@@ -31,7 +31,7 @@ class FermiHubbardData:
             so implements e^{-iH*total_evolution_time/(one_norm_of_H)}.
         n_trotter_steps (int): Number of Trotter steps for time evolution.
         enumeration (list or np.ndarray, optional): Site enumeration for spin-up
-            and spin-down sectors. If None, uses high-low enumeration with simple snaking i.e. pink plaquettes not initially localised spin up sector has [0,..,L^2-2] fermionic mode labels, spin down sector has [L^2,...,2*L^2].
+            and spin-down sectors. If None, uses high-low enumeration with simple snaking i.e. pink plaquettes not initially localized spin up sector has [0,..,L^2-2] fermionic mode labels, spin down sector has [L^2,...,2*L^2].
         u (float): Potential (interaction) coefficient. Defaults to 8.
         t (float): Kinetic (hopping) coefficient. Defaults to 1.
         particle_hole_symmetry (bool): Whether to use particle-hole symmetric
@@ -90,6 +90,16 @@ class FermiHubbardData:
             # override to use non-periodic boundaries for the 2x2 case, to avoid double
             # counting edges in the plaquette construction
             self.periodic = False
+
+        # note: faster if periodic and spinful since we have an analytical expression
+        if self.periodic and not self.spinless:
+            return get_expected_norm(
+                L_x=self.x_dim,
+                L_y=self.y_dim,
+                potential_coefficient=self.u,
+                kinetic_coefficient=self.t,
+                particle_hole_symmetry=self.particle_hole_symmetry,
+            )
 
         return get_fermi_hubbard_hamiltonian(
             x_dim=self.x_dim,

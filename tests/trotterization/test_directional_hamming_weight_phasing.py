@@ -90,7 +90,7 @@ def test_directional_hamming_weight_phasing_explicit(
 @pytest.mark.parametrize("number_of_target_qubits", [4, 6, 8])
 @pytest.mark.parametrize("preserve_global_phase", [True, False])
 def test_batched_directional_hwp(ctrl_val, number_of_target_qubits, preserve_global_phase):
-    """Test batched directional hamming weight phasing reproduces behaviour of open rotation (-theta) state followed by closed rotation (theta) tower."""
+    """Test batched directional hamming weight phasing reproduces behavior of open rotation (-theta) state followed by closed rotation (theta) tower."""
     n_qubits = number_of_target_qubits + 15
     qc = QPU(num_qubits=n_qubits, pre_filters=[">>witness>>"])
     ctrl = Qubits(1, "ctrl", qc)

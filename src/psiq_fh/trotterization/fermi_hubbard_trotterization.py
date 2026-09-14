@@ -1,4 +1,4 @@
-"""Qubricks for implementing the optimized Fermi-Hubbard Trotterizaton circuit in arxiv:2012.09238."""
+"""Qubricks for implementing the optimized Fermi-Hubbard Trotterization circuit in arxiv:2012.09238."""
 
 from psiqdk.algorithms import ComputeHammingWeightGroupOfThrees
 from psiqdk.workbench import Qubits, Qubrick
@@ -21,12 +21,11 @@ def construct_data_classes(data: FermiHubbardData) -> tuple[InteractionTermData,
     """
     single_trotter_step_evolution_time = data.total_evolution_time / (data.n_trotter_steps)
 
-    # First extract data to create data classes for interaction term data
+    # note: in both IPG and PIG orderings for second order Trotter, the interaction and pink plaquette term have times divided by 2
+
+    # Extract data to create data classes for interaction term data
     # Divide by four from Jordan Wigner
     interaction_coefficient = data.u / 4
-    # Implicitly assumes IPGPI second order trotter
-    # - so the first and last interaction evolutions are by time t/2
-    # - whereas when we have sequential trotter steps two interaction steps can be merged together to make a single evolution by time t.
     interaction_data = InteractionTermData(
         data.enumeration,
         single_trotter_step_evolution_time / 2,
@@ -34,8 +33,7 @@ def construct_data_classes(data: FermiHubbardData) -> tuple[InteractionTermData,
         particle_hole_symmetry=data.particle_hole_symmetry,
     )
 
-    # Then extract data to create data classes for plaquette term data
-    # Implicitly assumes IPGPI second order trotter so that the pink evolution is t/2 and the gold is two merged evolutions to make t.
+    # Extract data to create data classes for plaquette term data
     pink_plaquette_data = PlaquetteTermData("pink", data.enumeration, single_trotter_step_evolution_time / 2, data.t)
     gold_plaquette_data = PlaquetteTermData("gold", data.enumeration, single_trotter_step_evolution_time, data.t)
 
@@ -43,7 +41,7 @@ def construct_data_classes(data: FermiHubbardData) -> tuple[InteractionTermData,
 
 
 class HubbardPlaquetteTrotterizationIPG(Qubrick):
-    """Implements the time-evolution :math:`exp(itH))` of the Fermi-Hubbard Hamiltonian.
+    """Implements the time-evolution :math:`exp(itH)` of the Fermi-Hubbard Hamiltonian.
 
     Based on https://arxiv.org/abs/2012.09238, with Trotter ordering [Interaction, Pink, Gold] so that the interaction term is merged between steps.
 
@@ -113,7 +111,7 @@ class HubbardPlaquetteTrotterizationIPG(Qubrick):
             # Initial I half-step
             self.interaction_trotter_step.compute(target_reg, interaction_data, ctrl=ctrl)
 
-            interaction_data.evolution_time *= 2  # squish neighboring interaction steps together
+            interaction_data.evolution_time *= 2  # merge neighboring interaction steps together
 
             total_trotter_steps = data.n_trotter_steps
             if use_jump_back and total_trotter_steps > 2:
@@ -150,7 +148,7 @@ class HubbardPlaquetteTrotterizationIPG(Qubrick):
 
 
 class HubbardPlaquetteTrotterizationPIG(Qubrick):
-    """Implements the time-evolution :math:`exp(itH))` of the Fermi-Hubbard Hamiltonian.
+    """Implements the time-evolution :math:`exp(itH)` of the Fermi-Hubbard Hamiltonian.
 
     Based on https://arxiv.org/abs/2012.09238, with Trotter ordering [Pink, Interaction, Gold] so that pink plaquettes are merged between steps.
 
@@ -283,7 +281,7 @@ class HubbardPlaquetteTrotterizationPIG(Qubrick):
 
 
 class HubbardPlaquetteTrotterizationPIGClosedControl(Qubrick):
-    """Implements a closed-controlled time-evolution :math:`exp(itH))` of the Fermi-Hubbard Hamiltonian.
+    """Implements a closed-controlled time-evolution :math:`exp(itH)` of the Fermi-Hubbard Hamiltonian.
 
     Based on https://arxiv.org/abs/2012.09238, with Trotter ordering [Pink, Interaction, Gold] so that pink plaquettes are merged between steps.
     This subroutine can be used on the first phase qubit of a QPE employing directional phase kickback.

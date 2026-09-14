@@ -45,7 +45,7 @@ def compute_toff_counts_from_kan_et_al(lattice_sizes, queries, trotter_steps, ep
 
 @pytest.mark.parametrize("lattice_sizes", [[4], [6]])
 def test_compare_against_kan_et_al(lattice_sizes):
-    """Cross-verify baseline circuit WB Toffoli countsagainst Kan et al (arxiv:2411.02160) expressions.
+    """Cross-verify baseline circuit Workbench (WB) Toffoli counts against Kan et al (arxiv:2411.02160) expressions.
 
     Args:
         lattice_sizes: Lattice sizes.

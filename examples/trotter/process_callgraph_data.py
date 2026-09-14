@@ -58,7 +58,7 @@ def plot_av_breakdown_over_lattice_sizes(
     show_legend=True,
     show_xlabel=True,
     show_ylabel=True,
-)->Axes:
+) -> Axes:
     """Plot a stacked active-volume breakdown for multiple call graphs.
 
     Args:

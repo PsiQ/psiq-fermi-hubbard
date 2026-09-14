@@ -48,8 +48,8 @@ def get_fswap_with_replace_list(current_enumeration, target_enumeration, trivial
 
     """
     if current_enumeration.shape != target_enumeration.shape:
-        print("current_enumeration.shape", current_enumeration.shape)
-        print("target_enumeration.shape", target_enumeration.shape)
+        print("current_enumeration.shape: ", current_enumeration.shape)
+        print("target_enumeration.shape: ", target_enumeration.shape)
         raise ValueError("Target and current enumerators must be the same shape")
 
     list_of_swaps = []
@@ -119,7 +119,7 @@ class NaivefSWAPNetworkWithReplace(Qubrick):
 
         Args:
             target_reg (Qubits): Register holding system qubits to apply the fSWAPs to.
-            current_enumeration (List[np.darray]): Current enumeration of indices on the lattice.
+            current_enumeration (List[np.ndarray]): Current enumeration of indices on the lattice.
                                 Note: it is a list to account for possible multiple spin sectors, e.g., pink-localized has `(up_enum, dn_enum)` where each has `L×L` inputs.
             color_to_localize: Must be either 'pink' or 'gold', corresponding to the plaquette arrangement as described in https://arxiv.org/abs/2012.09238.
         """
@@ -191,7 +191,7 @@ class PinkLocalizedFermionicSwapNetworkWithReplace(Qubrick):
 
         Args:
             target_reg (Qubits): Register holding system qubits to apply the fSWAPs to.
-            current_enumeration (List[np.darray]): Current enumeration of indices on the lattice
+            current_enumeration (List[np.ndarray]): Current enumeration of indices on the lattice
                                 Note: it is a list to account for possible multiple spin sectors, e.g., pink-localized has `(up_enum, dn_enum)` where each has `L×L` plaquette indices.
             color_to_localize: Must be either 'pink' or 'gold', corresponding to the plaquette arrangement as described in https://arxiv.org/abs/2012.09238.
 

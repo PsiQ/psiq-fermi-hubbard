@@ -15,7 +15,7 @@ def get_expected_norm(
     kinetic_coefficient: float = 1,
     particle_hole_symmetry: bool = False,
 ) -> float:
-    """Analytically calculate the norm of the fermi hubbard hamiltonian as defined by Eq. 57 of arXiv:1805.03662.
+    """Analytically calculate the norm of the Fermi-Hubbard Hamiltonian as defined by Eq. 57 of arXiv:1805.03662.
 
     Args:
         L_x: Physical lattice x dimension of the system in question.
@@ -71,7 +71,7 @@ def get_fermi_hubbard_hamiltonian(
     particle_hole_symmetry: bool = False,
     spinless: bool = False,
 ):
-    """Wrapper function around openfermion to return the Fermi Hubbard hamiltonian as a ``PauliSum``.
+    """Wrapper function around openfermion to return the Fermi Hubbard Hamiltonian as a ``PauliSum``.
 
     Args:
         x_dim: The x-dimension of the physical lattice in the target system.
@@ -86,11 +86,11 @@ def get_fermi_hubbard_hamiltonian(
         spinless: If ``True``, considers a spinless Hamiltonian. Defaults to ``False``.
 
     Returns:
-        ``PauliSum`` representing the fermi-hubbard hamiltonian as defined in Eq. 57 of arXiv:1805.03662 with the added
-        caveat of removing the identity term from the hamiltonian.
+        ``PauliSum`` representing the Fermi-Hubbard Hamiltonian as defined in Eq. 57 of arXiv:1805.03662 with the added
+        caveat of removing the identity term from the Hamiltonian.
 
     """
-    # Note, this hamiltonian is not projected into a particular particle number subspace
+    # Note, this Hamiltonian is not projected into a particular particle number subspace
     unprojected_openfermion_hamiltonian = fermi_hubbard(
         x_dim,
         y_dim,
@@ -159,7 +159,7 @@ def construct_potential_hamiltonian(
         x_dim: The x-dimension of the physical lattice in the target system.
         y_dim: The y-dimension of the physical lattice in the target system.
         particle_hole_symmetry: If ``True``, uses the particle-hole
-            symmetric hamiltonian. Defaults to ``False``.
+            symmetric Hamiltonian. Defaults to ``False``.
         even_odd: Defaults to True, and spin up being even numbers, spin down being odd.
             If False adopts the high-low configuration with spin up low number, spin down high.
     """

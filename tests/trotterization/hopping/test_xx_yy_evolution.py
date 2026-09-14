@@ -1,4 +1,4 @@
-"""Tests for the XXYY evolution in the Fermi-Hubbard Trotterizaton circuit in arxiv:2012.09238."""
+"""Tests for the XXYY evolution in the Fermi-Hubbard Trotterization circuit in arxiv:2012.09238."""
 
 import numpy as np
 import pytest

@@ -619,5 +619,6 @@ def test_jumpback_qres_for_directional_qpe(
     assert qc.witness.filter("qc.x", target=cat_qubits.num_qubits, condition=1).count() == 2 * n_phase_qubits
 
     metrics = qc.metrics()
+    # controlled-Hadmard (chad) count
     chad_count = 2 * x_dim * y_dim  # per plaq call
     assert metrics["t_count"] == 2 * chad_count * witness_pink_gold_count

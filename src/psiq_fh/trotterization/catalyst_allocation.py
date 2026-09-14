@@ -1,4 +1,4 @@
-"""Allocate catalyst_registers for vanilla Fermi-Hubbard plaquette Trotterization."""
+"""Allocate catalyst_registers for Fermi-Hubbard plaquette Trotterization."""
 
 import numpy as np
 

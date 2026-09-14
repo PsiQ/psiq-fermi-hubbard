@@ -71,7 +71,7 @@ class FermiHubbardQreRunner:
             - `clean-ladder-filter`
             - `SingleControlFilter(use_anc=True)`
             - `RossSelingerSynthFilter`
-                - The `.synth_qbk` attribure of this is set to `RotatedViaMixedFallback`
+                - The `.synth_qbk` attribute of this is set to `RotationViaMixedFallback`
                     if `use_mixed_fallback=True`
                 - If any supplementary rotation_filter_conditions are provided, those
                     are set by the `.extra_conds` attribute.

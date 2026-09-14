@@ -137,7 +137,7 @@ def test_plaquette_qre_with_hwp(
     assert metrics["aggregated_toff_count"] == n_toffs_phase_grad_all
 
     # Check rotation count
-    n_rots_per_term = 4 * number_of_trotter_steps + 1  # in each generalized phase catalysis
+    n_rots_per_term = 4 * number_of_trotter_steps + 1  # in each generalized phase gradient addition
     n_rots_cat = 2 * np.floor(np.log2(lattice_size**2)).astype(int) + 3  # See Eq. (B26)
     n_rots = n_rots_per_term + n_rots_cat
     assert np.isclose(metrics["rotations"], n_rots)

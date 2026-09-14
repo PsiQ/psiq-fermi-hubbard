@@ -3,14 +3,17 @@ name = "psiq-fermi-hubbard-gsee"
 version = "0.1.0"
 description = "Qubricks and tests for 2D Fermi-Hubbard plaquette Trotterization, as used in arXiv:2609.05316"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.11,<3.14"
 authors = [
   { name = "Sukin (Dylan) Sim", email = "ssim@psiquantum.com" },
   { name = "Harriet Apel", email = "hapel@psiquantum.com" },
   { name = "Brendan Reid", email = "breid@psiquantum.com" },
-  { name = "William A. Simon" },
   { name = "Jessica Lemieux" },
+  { name = "Joseph Peetz" },
   { name = "Gideon Uchehara" },
+  { name = "William A. Simon" },
   { name = "Cristian Cortes" },
   { name = "Sean Greenaway" },
   { name = "Carys Harvey" },

@@ -1,4 +1,4 @@
-"""Tests for the Fermi-Hubbard Trotterizaton circuit in arxiv:2012.09238."""
+"""Tests for the Fermi-Hubbard Trotterization circuit in arxiv:2012.09238."""
 
 import numpy as np
 import pytest
@@ -111,7 +111,7 @@ def test_action_of_HubbardPlaquetteTrotterization_for_2x2_lattice(
     # state vectors fails at some evolution times while fidelity does not. Bounding this
     # tolerance against the Trotter error is an open question upstream.
     # assert np.allclose(final, time_evolution @ initial) will currently fail
-    # Some tolerance 1e-4 here taking the place of trotter error analysis
+    # Some tolerance 1e-4 here taking the place of Trotter error analysis
     assert abs(fidelity(final_state, time_evolution @ initial) - 1) < 1e-4
 
 
@@ -317,7 +317,7 @@ def test_no_cat_rots_increases_with_trotter_steps_as_expected(lattice_size_x):
     """Test that the number of catalyst rotations increases as expected for IPG ordering.
 
     For the ordering IPG, we expect that the number of catalyst rotations increases by one going from a single trotter
-    step to mutliple trotter steps. This is because the interaction term is merged, creating a new angle for hamming weight phasing
+    step to multiple trotter steps. This is because the interaction term is merged, creating a new angle for hamming weight phasing
     corresponding to double the evolution time for the interaction term.
 
     Note this will not be the case for PIG ordering as the gold and pink evolution times are the same (aside from t and t/2 discrepancies)

@@ -1,4 +1,4 @@
-"""Qubrick for implementing the interaction term in the Fermi-Hubbard Trotterizaton circuit in arxiv:2012.09238."""
+"""Qubrick for implementing the interaction term in the Fermi-Hubbard Trotterization circuit in arxiv:2012.09238."""
 
 import numpy as np
 from psiqdk.workbench import Qubrick, Qubits
