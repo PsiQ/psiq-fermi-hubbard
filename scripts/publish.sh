@@ -15,7 +15,7 @@ datetime=$(date "+%y-%m-%d-%H%M")
 new_branch_name="update_public_$datetime"
 git switch -c "$new_branch_name"
 
-fast_forward "$new_branch_name"
+fast_forward "$new_branch_name" || exit 1
 
 git push \
   -o merge_request.create \
