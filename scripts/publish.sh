@@ -21,5 +21,5 @@ git push \
   -o merge_request.create \
   -o merge_request.target=public \
   -o merge_request.remove_source_branch \
-  -o merge_request.title="<Your title here!>"
+  -o merge_request.title="<Your title here!>" \
   origin "$new_branch_name"
