@@ -41,7 +41,7 @@ fast_forward() {
     if [[ "$original_sha" == $(parse "$source") ]]; then
         echo "Everything up to date!"
         echo "No further commits on ${source} to add onto ${target}."
-        exit 0
+        return 0
     fi
 
 
