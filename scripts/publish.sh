@@ -11,5 +11,3 @@ current_branch_is_public
 clean_working_tree
 
 fast_forward public || exit 1
-
-git push origin HEAD:public
