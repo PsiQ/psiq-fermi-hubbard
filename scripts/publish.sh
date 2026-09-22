@@ -14,6 +14,6 @@ fast_forward public || exit 1
 
 echo "The following files have been edited and committed:"
 echo "------------------"
-git diff remotes/origin/main --name-only
+git diff origin/public --name-only
 echo "------------------"
-echo "Run `git push` when ready to publish."
+echo "Run 'git push' when ready to publish."
